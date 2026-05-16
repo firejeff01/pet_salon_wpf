@@ -67,6 +67,7 @@
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="ApplicationProgramsFolder" Name="貳寶寵物美容工坊" />
     </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
 
     <!-- 起始功能表捷徑 + per-user 標記 -->
     <DirectoryRef Id="ApplicationProgramsFolder">
@@ -87,10 +88,29 @@
       </Component>
     </DirectoryRef>
 
+    <!-- 桌面捷徑 -->
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="C3D4E5F6-A1B2-4321-B098-765432109876">
+        <Shortcut Id="AppDesktopShortcut"
+                  Name="貳寶寵物美容工坊"
+                  Description="犬貓美容定型化契約系統"
+                  Target="[INSTALLFOLDER]PetSalon.Wpf.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon.exe" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\PetSalon"
+                       Name="desktopShortcutInstalled"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
     <!-- 主 Feature：所有 publish 後的檔案 + 捷徑 -->
     <Feature Id="MainApp" Title="主程式" Level="1">
       <ComponentGroupRef Id="PublishedFiles" />
       <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
     </Feature>
 
   </Package>
