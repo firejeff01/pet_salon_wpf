@@ -1,0 +1,203 @@
+<UserControl x:Class="PetSalon.Wpf.Views.PetEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PetSalon.Wpf.ViewModels"
+             xmlns:helper="clr-namespace:PetSalon.Wpf.Behaviors"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:PetEditViewModel}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding ModeTitle}" FontWeight="Bold" FontSize="20"
+                   Foreground="{StaticResource Brown700Brush}" Margin="0,0,0,12" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,4,0">
+            <StackPanel>
+                <!-- 基本資料 -->
+                <Border Style="{StaticResource CardStyleNoShadow}" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,10">
+                            <TextBlock helper:LabelHelper.RequiredText="名稱" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,10">
+                            <TextBlock helper:LabelHelper.RequiredText="物種" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox ItemsSource="{Binding SpeciesList}" SelectedItem="{Binding Species}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,10">
+                            <TextBlock helper:LabelHelper.RequiredText="品種" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Breed, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,0,0,10">
+                            <TextBlock helper:LabelHelper.RequiredText="性別" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox ItemsSource="{Binding GenderList}" SelectedItem="{Binding Gender}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,8,10">
+                            <TextBlock helper:LabelHelper.RequiredText="年齡" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Age, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="8,0,0,10" VerticalAlignment="Bottom" Orientation="Horizontal">
+                            <CheckBox Content="已結紮" IsChecked="{Binding IsNeutered}" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="晶片號碼" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox AutomationProperties.AutomationId="txt-pet-chip-number"
+                                     Text="{Binding ChipNumber, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock AutomationProperties.AutomationId="txt-pet-chip-hint"
+                                       Text="若無晶片，請於下方填寫識別方式"
+                                       FontSize="11" Foreground="{StaticResource Brown500Brush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="8,0,0,0">
+                            <TextBlock Text="無晶片識別方式" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox AutomationProperties.AutomationId="txt-pet-unregistered-id"
+                                     Text="{Binding UnregisteredIdMethod, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 個性 -->
+                <Border Style="{StaticResource CardStyleNoShadow}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock helper:LabelHelper.RequiredText="個性"
+                                   FontWeight="SemiBold" Foreground="{StaticResource Brown700Brush}" Margin="0,0,0,6" />
+                        <ItemsControl ItemsSource="{Binding Personality}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" Margin="0,4,16,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 身體檢查 -->
+                <Border Style="{StaticResource CardStyleNoShadow}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="身體檢查" FontWeight="SemiBold" Foreground="{StaticResource Brown700Brush}" Margin="0,0,0,8" />
+                        <UniformGrid Rows="2" Columns="3">
+                            <UniformGrid.Resources>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Margin" Value="0,0,12,12" />
+                                </Style>
+                            </UniformGrid.Resources>
+                            <StackPanel>
+                                <TextBlock Text="眼睛" Style="{StaticResource FieldLabelStyle}" />
+                                <ComboBox AutomationProperties.AutomationId="cmb-phys-eyes"
+                                          ItemsSource="{Binding BodyConditions}" SelectedItem="{Binding EyesCondition}" />
+                                <TextBox AutomationProperties.AutomationId="txt-phys-eyes-note"
+                                         Text="{Binding EyesNote, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="30" Margin="0,4,0,0"
+                                         Visibility="{Binding EyesNoteVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="耳朵" Style="{StaticResource FieldLabelStyle}" />
+                                <ComboBox AutomationProperties.AutomationId="cmb-phys-ears"
+                                          ItemsSource="{Binding BodyConditions}" SelectedItem="{Binding EarsCondition}" />
+                                <TextBox AutomationProperties.AutomationId="txt-phys-ears-note"
+                                         Text="{Binding EarsNote, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="30" Margin="0,4,0,0"
+                                         Visibility="{Binding EarsNoteVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="牙齒" Style="{StaticResource FieldLabelStyle}" />
+                                <ComboBox AutomationProperties.AutomationId="cmb-phys-teeth"
+                                          ItemsSource="{Binding BodyConditions}" SelectedItem="{Binding TeethCondition}" />
+                                <TextBox AutomationProperties.AutomationId="txt-phys-teeth-note"
+                                         Text="{Binding TeethNote, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="30" Margin="0,4,0,0"
+                                         Visibility="{Binding TeethNoteVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="四肢" Style="{StaticResource FieldLabelStyle}" />
+                                <ComboBox AutomationProperties.AutomationId="cmb-phys-limbs"
+                                          ItemsSource="{Binding BodyConditions}" SelectedItem="{Binding LimbsCondition}" />
+                                <TextBox AutomationProperties.AutomationId="txt-phys-limbs-note"
+                                         Text="{Binding LimbsNote, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="30" Margin="0,4,0,0"
+                                         Visibility="{Binding LimbsNoteVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="皮膚" Style="{StaticResource FieldLabelStyle}" />
+                                <ComboBox AutomationProperties.AutomationId="cmb-phys-skin"
+                                          ItemsSource="{Binding BodyConditions}" SelectedItem="{Binding SkinCondition}" />
+                                <TextBox AutomationProperties.AutomationId="txt-phys-skin-note"
+                                         Text="{Binding SkinNote, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="30" Margin="0,4,0,0"
+                                         Visibility="{Binding SkinNoteVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="皮毛" Style="{StaticResource FieldLabelStyle}" />
+                                <ComboBox AutomationProperties.AutomationId="cmb-phys-fur"
+                                          ItemsSource="{Binding FurConditions}" SelectedItem="{Binding FurCondition}" />
+                                <!-- Q8: 皮毛 Note 只在含「異常」時顯示 -->
+                                <TextBox AutomationProperties.AutomationId="txt-phys-fur-note"
+                                         Text="{Binding FurNote, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="30" Margin="0,4,0,0"
+                                         Visibility="{Binding FurNoteVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 病史 -->
+                <Border Style="{StaticResource CardStyleNoShadow}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="病史（可空白＝無；勾「以上皆無」將清除其他選項）" FontWeight="SemiBold" Foreground="{StaticResource Brown700Brush}" Margin="0,0,0,6" />
+                        <ItemsControl ItemsSource="{Binding MedicalHistory}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" Margin="0,4,16,4"
+                                              AutomationProperties.AutomationId="{Binding Name, StringFormat='cb-medical-{0}'}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="其他病史說明" Style="{StaticResource FieldLabelStyle}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding MedicalHistoryOther, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 備註 -->
+                <Border Style="{StaticResource CardStyleNoShadow}">
+                    <StackPanel>
+                        <TextBlock Text="備註" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" Margin="0,10,0,0"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource NotNullToVisibilityConverter}}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="取消" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" Margin="0,0,8,0" />
+            <Button Content="儲存" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding SaveCommand}" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</UserControl>

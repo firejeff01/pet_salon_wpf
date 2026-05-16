@@ -1,0 +1,49 @@
+# Build output
+bin/
+obj/
+out/
+output/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Test artefacts
+TestResults/
+test-results/
+test-report.html
+*.trx
+*.coverage
+
+# Runtime data (should never be committed)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# WiX intermediate
+installer/Files.wxs
+installer/*.wixpdb
+installer/obj/
+
+# Local screenshots / scratch (dev-only artefacts)
+error/
+wpf_*.png
+pdf-*.png
+customer-form-*.png
+
+# Memory / agent state
+.claude/
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log

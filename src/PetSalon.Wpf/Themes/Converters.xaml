@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:cv="clr-namespace:PetSalon.Wpf.Converters">
+    <cv:ActiveTagConverter x:Key="ActiveTagConverter" />
+    <cv:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    <cv:NullToVisibilityConverter x:Key="NotNullToVisibilityConverter" Invert="True" />
+    <cv:NotNullToBoolConverter x:Key="NotNullToBoolConverter" />
+    <cv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <cv:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" Invert="True" />
+    <cv:DateOnlyToDateTimeConverter x:Key="DateOnlyToDateTimeConverter" />
+    <cv:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
+</ResourceDictionary>

@@ -1,0 +1,70 @@
+name: Build MSI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write  # create release + upload asset
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install WiX v5
+        run: dotnet tool install --global wix --version 5.*
+
+      - name: Read version from csproj
+        id: ver
+        shell: pwsh
+        run: |
+          [xml]$xml = Get-Content 'src/PetSalon.Wpf/PetSalon.Wpf.csproj'
+          $v = ($xml.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1).Trim()
+          if (-not $v) { throw 'csproj <Version> missing' }
+          # 若觸發是 tag push，確保 tag 形式 v{X.Y.Z} 與 csproj 版本相符
+          if ('${{ github.ref_type }}' -eq 'tag') {
+            $tag = '${{ github.ref_name }}'.TrimStart('v','V')
+            if ($tag -ne $v) {
+              throw "Tag $tag 與 csproj <Version> $v 不一致；請先把 csproj <Version> 改成 $tag 後再 push tag。"
+            }
+          }
+          "version=$v" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
+          Write-Host "version: $v"
+
+      - name: Build MSI
+        shell: pwsh
+        run: ./tools/build-installer.ps1
+
+      - name: Upload MSI as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetSalon-Setup-v${{ steps.ver.outputs.version }}
+          path: out/PetSalon-Setup-v*.msi
+          if-no-files-found: error
+
+      # 只有 tag 觸發才建 GitHub Release 附 MSI
+      - name: Create Release & attach MSI
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 貳寶寵物美容工坊 ${{ github.ref_name }}
+          body: |
+            ## 安裝
+            下載下方 `PetSalon-Setup-v${{ steps.ver.outputs.version }}.msi` 點兩下執行即可。
+            - Per-user 安裝（不需管理員權限）
+            - 升級舊版會保留所有資料
+            - 首次「產生 PDF」需網路下載 Chromium (~170 MB)
+          files: out/PetSalon-Setup-v*.msi
+          draft: false
+          prerelease: false

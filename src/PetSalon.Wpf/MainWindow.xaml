@@ -1,0 +1,127 @@
+<Window x:Class="PetSalon.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:PetSalon.Wpf.ViewModels"
+        xmlns:ctrl="clr-namespace:PetSalon.Wpf.Controls"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Title="{Binding WindowTitle}"
+        Width="1280" Height="820"
+        MinWidth="1100" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Icon="Assets/app.ico"
+        FontFamily="Microsoft JhengHei UI"
+        Foreground="{StaticResource TextBrush}">
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding ReloadCommand}" />
+    </Window.InputBindings>
+
+    <Grid>
+        <Rectangle Fill="{StaticResource WindowBackdropBrush}" />
+        <DockPanel>
+            <!-- 新版本提示 banner（IsUpdateAvailable=true 才顯示） -->
+            <Border DockPanel.Dock="Top" Background="{StaticResource Pink200Brush}"
+                    BorderBrush="{StaticResource Pink500Brush}" BorderThickness="0,0,0,1"
+                    Padding="20,8"
+                    Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="✕" Background="Transparent" BorderThickness="0"
+                            Width="28" Height="28" FontSize="14" Cursor="Hand"
+                            Foreground="{StaticResource Brown700Brush}"
+                            ToolTip="關閉提示"
+                            Command="{Binding DismissUpdateCommand}" />
+                    <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButtonStyle}"
+                            Content="下載新版" Padding="14,4" FontSize="12" Margin="0,0,8,0"
+                            Command="{Binding OpenUpdateCommand}" />
+                    <TextBlock Text="{Binding UpdateBannerText}" VerticalAlignment="Center"
+                               Foreground="{StaticResource Brown700Brush}" FontWeight="SemiBold" />
+                </DockPanel>
+            </Border>
+
+            <!-- Menu -->
+            <Menu DockPanel.Dock="Top" Background="{StaticResource SurfaceBrush}" Padding="4">
+                <MenuItem Header="檔案(_F)">
+                    <MenuItem Header="開啟資料夾" Click="OnOpenAppDataFolder" />
+                    <Separator />
+                    <MenuItem Header="結束(_X)" Click="OnExit" InputGestureText="Alt+F4" />
+                </MenuItem>
+                <MenuItem Header="檢視(_V)">
+                    <MenuItem Header="重新載入(_R)" Click="OnReload" InputGestureText="F5" />
+                    <MenuItem Header="切換全螢幕(_F)" Click="OnToggleFullScreen" InputGestureText="F11" />
+                </MenuItem>
+                <MenuItem Header="說明(_H)">
+                    <MenuItem Header="關於" Click="OnAbout" />
+                </MenuItem>
+            </Menu>
+
+            <!-- Header: brand bar + nav (粉色漸層，sticky) -->
+            <Border DockPanel.Dock="Top" Background="{StaticResource BrandBarGradientBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                    Padding="32,16" Effect="{StaticResource ShadowSm}">
+                <DockPanel>
+                    <!-- Brand mark + 文字（左） -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="44" Height="44" CornerRadius="999"
+                                Background="{StaticResource BrandLogoGradientBrush}"
+                                Effect="{StaticResource ShadowMd}"
+                                Margin="0,0,12,0">
+                            <TextBlock Text="🐾" Foreground="White" FontSize="22"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="貳寶寵物美容工坊"
+                                       FontFamily="Microsoft JhengHei UI" FontWeight="Bold"
+                                       FontSize="20" Foreground="{StaticResource Brown700Brush}" />
+                            <TextBlock Text="犬貓美容定型化契約系統"
+                                       FontSize="12" Foreground="{StaticResource Brown500Brush}"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- Nav（右側水平展開） -->
+                    <ItemsControl ItemsSource="{Binding MenuItems}" VerticalAlignment="Center"
+                                  HorizontalAlignment="Right">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource TopNavButtonStyle}"
+                                        Tag="{Binding IsActive, Converter={StaticResource ActiveTagConverter}}"
+                                        Content="{Binding Label}"
+                                        AutomationProperties.AutomationId="{Binding Key, StringFormat=nav-{0}}"
+                                        Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding Key}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+
+            <!-- Footer -->
+            <Border DockPanel.Dock="Bottom" Background="#80FFF5F8"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                    Padding="32,12">
+                <DockPanel>
+                    <TextBlock Text="🐶🐱" DockPanel.Dock="Right" FontSize="14"
+                               Foreground="{StaticResource Brown500Brush}" />
+                    <TextBlock Text="© 貳寶寵物美容工坊"
+                               FontSize="12" Foreground="{StaticResource Brown500Brush}" />
+                </DockPanel>
+            </Border>
+
+            <!-- Main 內容 (max 1280, 居中) -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          Padding="0">
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid Margin="32,24,32,32" MaxWidth="1280" HorizontalAlignment="Stretch">
+                        <ContentControl Content="{Binding CurrentView}" />
+                    </Grid>
+                </Grid>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
+</Window>

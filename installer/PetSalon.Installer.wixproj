@@ -1,0 +1,20 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <OutputName>PetSalon-Setup</OutputName>
+    <!-- BindPath 由 build script 透過 -bindpath 覆寫；此處給 IDE 預覽 -->
+    <DefineConstants>PublishDir=..\out\publish</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+    <Compile Include="Files.wxs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+</Project>

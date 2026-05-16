@@ -1,0 +1,21 @@
+<UserControl x:Class="PetSalon.Wpf.Controls.PawIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DesignWidth="24" d:DesignHeight="24">
+    <Viewbox Stretch="Uniform">
+        <Canvas Width="24" Height="24">
+            <Path Fill="{Binding PawFill, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                <Path.Data>
+                    <GeometryGroup>
+                        <EllipseGeometry Center="12,15" RadiusX="4" RadiusY="4" />
+                        <EllipseGeometry Center="6,9" RadiusX="2.2" RadiusY="3" />
+                        <EllipseGeometry Center="12,6" RadiusX="2.2" RadiusY="3" />
+                        <EllipseGeometry Center="18,9" RadiusX="2.2" RadiusY="3" />
+                    </GeometryGroup>
+                </Path.Data>
+            </Path>
+        </Canvas>
+    </Viewbox>
+</UserControl>

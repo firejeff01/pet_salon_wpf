@@ -1,0 +1,157 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============ 寵物美容 粉色色票（對齊 pet_salon/tokens.css） ============ -->
+    <Color x:Key="PinkColor50">#FFF5F8</Color>
+    <Color x:Key="PinkColor100">#FFE8F0</Color>
+    <Color x:Key="PinkColor200">#FFD1DF</Color>
+    <Color x:Key="PinkColor300">#FFB6CC</Color>
+    <Color x:Key="PinkColor400">#FF94B3</Color>
+    <Color x:Key="PinkColor500">#F87199</Color>
+    <Color x:Key="PinkColor600">#E85787</Color>
+    <Color x:Key="PinkColor700">#C83F6D</Color>
+
+    <Color x:Key="CreamColor">#FFF9F6</Color>
+    <Color x:Key="SandColor">#FDF2EC</Color>
+    <Color x:Key="BeigeColor">#F5E6DC</Color>
+
+    <Color x:Key="Brown700Color">#5D4037</Color>
+    <Color x:Key="Brown500Color">#8D6E63</Color>
+    <Color x:Key="Brown300Color">#BCAAA4</Color>
+
+    <Color x:Key="SuccessColor">#6FBF8E</Color>
+    <Color x:Key="SuccessBgColor">#E6F6EC</Color>
+    <Color x:Key="WarningColor">#E8A64E</Color>
+    <Color x:Key="WarningBgColor">#FFF3E0</Color>
+    <Color x:Key="DangerColor">#E05761</Color>
+    <Color x:Key="DangerBgColor">#FEE8EA</Color>
+    <Color x:Key="InfoColor">#7AA5D2</Color>
+    <Color x:Key="InfoBgColor">#EAF2FB</Color>
+
+    <Color x:Key="BgColor">#FFF5F8</Color>
+    <Color x:Key="BgAltColor">#FFFDFC</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+    <Color x:Key="BorderColor">#F8D7E0</Color>
+    <Color x:Key="BorderStrongColor">#F0B9C8</Color>
+    <Color x:Key="TextColor">#4A2E35</Color>
+    <Color x:Key="TextMutedColor">#8A6570</Color>
+    <Color x:Key="AccentColor">#FFB088</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="Pink50Brush" Color="{StaticResource PinkColor50}" />
+    <SolidColorBrush x:Key="Pink100Brush" Color="{StaticResource PinkColor100}" />
+    <SolidColorBrush x:Key="Pink200Brush" Color="{StaticResource PinkColor200}" />
+    <SolidColorBrush x:Key="Pink300Brush" Color="{StaticResource PinkColor300}" />
+    <SolidColorBrush x:Key="Pink500Brush" Color="{StaticResource PinkColor500}" />
+    <SolidColorBrush x:Key="Pink600Brush" Color="{StaticResource PinkColor600}" />
+    <SolidColorBrush x:Key="Pink700Brush" Color="{StaticResource PinkColor700}" />
+
+    <SolidColorBrush x:Key="CreamBrush" Color="{StaticResource CreamColor}" />
+    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="BgAltBrush" Color="{StaticResource BgAltColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+
+    <SolidColorBrush x:Key="Brown700Brush" Color="{StaticResource Brown700Color}" />
+    <SolidColorBrush x:Key="Brown500Brush" Color="{StaticResource Brown500Color}" />
+    <SolidColorBrush x:Key="Brown300Brush" Color="{StaticResource Brown300Color}" />
+
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="SuccessBgBrush" Color="{StaticResource SuccessBgColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="WarningBgBrush" Color="{StaticResource WarningBgColor}" />
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+
+    <!-- 別名（與舊命名相容） -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource PinkColor500}" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource PinkColor600}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="StatusBarBrush" Color="{StaticResource CreamColor}" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource Brown500Color}" />
+
+    <!-- ============ Brand bar 漸層 (100deg) ============ -->
+    <LinearGradientBrush x:Key="BrandBarGradientBrush" StartPoint="0,0" EndPoint="1,0.18">
+        <GradientStop Color="#FFF5F8" Offset="0.0" />
+        <GradientStop Color="#FFE7EE" Offset="0.6" />
+        <GradientStop Color="#FFDFD0" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- ============ Brand 圓形 logo 漸層 (135deg) ============ -->
+    <LinearGradientBrush x:Key="BrandLogoGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFB6CC" Offset="0.0" />
+        <GradientStop Color="#FF8FB0" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- ============ Hero 卡漸層 ============ -->
+    <LinearGradientBrush x:Key="HeroGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFE8F0" Offset="0.0" />
+        <GradientStop Color="#FFD1DF" Offset="0.5" />
+        <GradientStop Color="#FFB6CC" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- ============ 功能卡漸層（4 色） ============ -->
+    <LinearGradientBrush x:Key="CardPinkGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFE8F0" Offset="0" /><GradientStop Color="#FFB6CC" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="CardPeachGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFEFE3" Offset="0" /><GradientStop Color="#FFCBA6" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="CardMintGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E6F6EC" Offset="0" /><GradientStop Color="#B8E6C8" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="CardLavenderGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#EAE2F7" Offset="0" /><GradientStop Color="#C7B6E8" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- ============ Window 底色 radial 漸層光暈 ============ -->
+    <DrawingBrush x:Key="WindowBackdropBrush" TileMode="None" Stretch="UniformToFill">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="{StaticResource BgBrush}">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0 1600,1000" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing>
+                    <GeometryDrawing.Brush>
+                        <RadialGradientBrush GradientOrigin="0.15,0.1" Center="0.15,0.1" RadiusX="0.5" RadiusY="0.4">
+                            <GradientStop Color="#33FFB6CC" Offset="0" />
+                            <GradientStop Color="#00FFB6CC" Offset="1" />
+                        </RadialGradientBrush>
+                    </GeometryDrawing.Brush>
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0 1600,1000" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing>
+                    <GeometryDrawing.Brush>
+                        <RadialGradientBrush GradientOrigin="0.85,0.85" Center="0.85,0.85" RadiusX="0.5" RadiusY="0.5">
+                            <GradientStop Color="#1FFFB088" Offset="0" />
+                            <GradientStop Color="#00FFB088" Offset="1" />
+                        </RadialGradientBrush>
+                    </GeometryDrawing.Brush>
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0 1600,1000" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <!-- ============ 陰影（粉色色調） ============ -->
+    <DropShadowEffect x:Key="ShadowSm" BlurRadius="4" ShadowDepth="1" Direction="270"
+                      Color="#E85787" Opacity="0.12" />
+    <DropShadowEffect x:Key="ShadowMd" BlurRadius="14" ShadowDepth="4" Direction="270"
+                      Color="#E85787" Opacity="0.18" />
+    <DropShadowEffect x:Key="ShadowLg" BlurRadius="28" ShadowDepth="12" Direction="270"
+                      Color="#E85787" Opacity="0.25" />
+</ResourceDictionary>

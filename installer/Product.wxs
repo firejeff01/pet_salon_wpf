@@ -1,0 +1,97 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!--
+    PetSalon (貳寶寵物美容工坊) MSI 安裝程式
+    - 安裝範圍：當前使用者（Per-user，不需管理員）
+    - 安裝位置：%LOCALAPPDATA%\Programs\PetSalon
+    - 起始功能表捷徑：「貳寶寵物美容工坊」
+    - 包含：self-contained .NET 10 runtime（無需另裝 .NET）
+    - WebView2 Runtime：app 啟動時偵測，缺漏會引導用戶下載
+    - Chromium（PDF 產出用）：首次產 PDF 時自動下載到 %LOCALAPPDATA%\PetSalon\chromium
+
+    ============================================================================
+    ⚠️ PreventDataLoss 社約（絕對不要違反）
+    ============================================================================
+    使用者資料（SQLite DB、契約 PDF、備份 zip、Chromium 快取）位於：
+        %LOCALAPPDATA%\PetSalon\
+            ├── petsalon_app.db    ← 客戶資料庫
+            ├── backups\*.zip       ← 手動備份
+            ├── backups\auto_v*.db  ← 升級前自動備份（App.xaml.cs 產生）
+            ├── contracts\*.pdf     ← 已生成契約
+            └── chromium\           ← 首次產 PDF 下載
+
+    安裝位置與資料位置「故意分開」：
+        安裝目錄 = %LOCALAPPDATA%\Programs\PetSalon   ← MSI 管轄、MajorUpgrade 會清空
+        資料目錄 = %LOCALAPPDATA%\PetSalon            ← App runtime 動態建立、MSI 完全不管
+
+    這保證升級新版時 MajorUpgrade 卸舊裝新不會碰到客戶資料。
+
+    ★ 未來修改本檔時，絕對不要在 <Component> 內加任何指向資料目錄的 File / RemoveFolder。
+    ★ 不要在 Files.wxs 自動產生時把 %LOCALAPPDATA%\PetSalon\ 列為 Source。
+    ★ tools/build-installer.ps1 會做 sanity check 阻擋此類錯誤。
+    ============================================================================
+  -->
+
+  <!-- Version 由 build-installer.ps1 從 csproj <Version> 讀取後傳入：wix build -d Version=1.0.0.0 -->
+  <?ifndef Version?>
+    <?define Version = "1.0.0.0"?>
+  <?endif?>
+
+  <Package Name="貳寶寵物美容工坊"
+           Manufacturer="貳寶寵物美容工坊"
+           Version="$(var.Version)"
+           UpgradeCode="6B5A8D7E-3F4C-4A2D-9C8B-7E1D5A6F8B2C"
+           Scope="perUser"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="已安裝較新版本的「貳寶寵物美容工坊」。" />
+
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- Icon for Add/Remove Programs -->
+    <Icon Id="AppIcon.exe" SourceFile="..\src\PetSalon.Wpf\Assets\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.exe" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/anthropics/claude-code/issues" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+
+    <!-- 安裝路徑：%LOCALAPPDATA%\Programs\PetSalon -->
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="PetSalon" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- 起始功能表 -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="貳寶寵物美容工坊" />
+    </StandardDirectory>
+
+    <!-- 起始功能表捷徑 + per-user 標記 -->
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="StartMenuShortcut" Guid="A1B2C3D4-E5F6-4789-A012-345678901234">
+        <Shortcut Id="AppStartMenuShortcut"
+                  Name="貳寶寵物美容工坊"
+                  Description="犬貓美容定型化契約系統"
+                  Target="[INSTALLFOLDER]PetSalon.Wpf.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon.exe" />
+        <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\PetSalon"
+                       Name="installed"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- 主 Feature：所有 publish 後的檔案 + 捷徑 -->
+    <Feature Id="MainApp" Title="主程式" Level="1">
+      <ComponentGroupRef Id="PublishedFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+  </Package>
+</Wix>

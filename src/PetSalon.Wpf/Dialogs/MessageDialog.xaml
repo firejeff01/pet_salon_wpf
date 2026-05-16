@@ -1,0 +1,49 @@
+<Window x:Class="PetSalon.Wpf.Dialogs.MessageDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" SizeToContent="Height"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Width="440" MinHeight="180" MaxWidth="520"
+        FontFamily="Microsoft JhengHei UI">
+    <Border CornerRadius="16" Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="32" ShadowDepth="8" Color="#E85787" Opacity="0.35" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header bar -->
+            <Border x:Name="HeaderBar" Grid.Row="0" Padding="20,16" CornerRadius="16,16,0,0">
+                <DockPanel>
+                    <TextBlock x:Name="IconText" DockPanel.Dock="Left" FontSize="22" VerticalAlignment="Center"
+                               Margin="0,0,12,0" Text="ℹ️" />
+                    <TextBlock x:Name="TitleText" FontWeight="Bold" FontSize="16"
+                               Foreground="White" VerticalAlignment="Center" Text="提示" />
+                </DockPanel>
+            </Border>
+
+            <!-- Body -->
+            <Border Grid.Row="1" Padding="24,18,24,12">
+                <TextBlock x:Name="MessageText" FontSize="14"
+                           Foreground="{StaticResource TextBrush}"
+                           TextWrapping="Wrap" LineHeight="22"
+                           Text="—" />
+            </Border>
+
+            <!-- Buttons -->
+            <Border Grid.Row="2" Padding="20,12" Background="{StaticResource Pink50Brush}"
+                    CornerRadius="0,0,16,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                <StackPanel x:Name="ButtonPanel" Orientation="Horizontal" HorizontalAlignment="Right" />
+            </Border>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face {
+    font-family: 'Kaiu';
+    src: url('{{fontDataUri}}') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  @page {
+    size: A4;
+    margin: 20mm 18mm 18mm 18mm;
+  }
+  html, body { font-family: 'Kaiu', serif; color: #000; }
+  body { font-size: 10.5pt; line-height: 1.55; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 14pt; text-align: center; margin: 0 0 10mm 0; }
+  h2 { font-size: 11.5pt; margin: 5mm 0 2mm 0; }
+  .section-title { font-weight: bold; margin-top: 4mm; }
+  ol, ul { margin: 0; padding-left: 6mm; }
+  p { margin: 2mm 0; text-align: justify; }
+  .indent { padding-left: 4mm; }
+  .indent2 { padding-left: 8mm; }
+
+  /* Reusable checkbox.  "on" renders a filled small square like a tick. */
+  .cb { display: inline-block; width: 10pt; height: 10pt; border: 0.8pt solid #000;
+        vertical-align: -1pt; margin: 0 2pt; position: relative; }
+  .cb.on::after { content: ''; position: absolute; left: 1.5pt; top: 1.5pt;
+                  width: 5pt; height: 5pt; background: #000; }
+
+  /* Underline blank that displays a value above the line. */
+  .blank { display: inline-block; border-bottom: 0.6pt solid #000; min-width: 24mm;
+           padding: 0 2mm; text-align: center; }
+  .blank.wide { min-width: 50mm; }
+  .blank.narrow { min-width: 10mm; }
+  .blank.xwide { min-width: 80mm; }
+
+  /* Table styling used on page 1 basic-info block and service record. */
+  table { border-collapse: collapse; width: 100%; }
+  table.info td { border: 0.6pt solid #000; padding: 2pt 4pt; vertical-align: middle; }
+  table.info td.label { width: 22mm; text-align: center; background: #f8f8f8;
+                        font-weight: normal; }
+  table.info td.val { padding: 2pt 4pt; min-height: 7mm; }
+  table.info .val-line { display: block; min-height: 6mm; }
+
+  /* Page 1 header block */
+  .shop-head { display: flex; justify-content: space-between;
+               border: 0.6pt solid #000; padding: 1mm 2mm; font-size: 10pt;
+               margin-bottom: 2mm; }
+  .shop-head .cell { flex: 1; }
+
+  /* Form row */
+  .form-row { display: flex; }
+  .col { border: 0.6pt solid #000; padding: 2pt 4pt; }
+
+  /* Note inline text after checkbox row */
+  .note-text { font-size: 9pt; color: #333; margin-left: 4pt; }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 (service record) ================= -->
+<section class="page">
+  <h1 style="margin-bottom:3mm;">寵物美容契約書</h1>
+  <div style="display:flex; justify-content:space-between; font-size:9.5pt; margin-bottom:3mm;">
+    <div>店家名稱：貳寶寵物美容工坊　　連絡電話：03-3310279</div>
+    <div>店家地址：桃園市桃園區慈文路322巷5號</div>
+  </div>
+
+  <table class="info">
+    <tr><td class="label">姓名</td><td class="val" colspan="5">{{owner.name}}</td></tr>
+    <tr><td class="label">身分證字號</td><td class="val" colspan="5">{{owner.nationalId}}</td></tr>
+    <tr><td class="label">聯絡電話</td><td class="val" colspan="5">{{owner.phone}}</td></tr>
+    <tr><td class="label">聯絡地址</td><td class="val" colspan="5" style="height:14mm;">{{owner.address}}</td></tr>
+    <tr><td class="label">緊急聯絡人</td><td class="val" colspan="5">{{owner.emergencyContactName}}</td></tr>
+    <tr><td class="label">與飼主關係</td><td class="val" colspan="5">{{owner.emergencyContactRelationship}}</td></tr>
+    <tr><td class="label">緊急聯絡電話</td><td class="val" colspan="5">{{owner.emergencyContactPhone}}</td></tr>
+  </table>
+
+  <table class="info" style="margin-top:2mm;">
+    <tr>
+      <td class="label" rowspan="4">服務項目</td>
+      <td class="val" style="width:30mm;">
+        <span class="cb {{#if has洗澡}}on{{/if}}"></span>洗澡
+      </td>
+      <td class="val" style="width:36mm;">費用：{{price洗澡}}</td>
+      <td class="label" style="width:22mm;">寵物名稱</td>
+      <td class="val">{{pet.name}}</td>
+      <td class="val" style="width:34mm;">
+        <span class="cb {{#ifEq pet.gender '公'}}on{{/ifEq}}"></span>公
+        <span class="cb {{#ifEq pet.gender '母'}}on{{/ifEq}}"></span>母
+      </td>
+    </tr>
+    <tr>
+      <td class="val"><span class="cb {{#if has美容}}on{{/if}}"></span>美容</td>
+      <td class="val">費用：{{price美容}}</td>
+      <td class="label">寵物品種</td>
+      <td class="val">{{pet.breed}}</td>
+      <td class="val">
+        <span class="cb {{#ifEq pet.species '犬'}}on{{/ifEq}}"></span>犬
+        <span class="cb {{#ifEq pet.species '貓'}}on{{/ifEq}}"></span>貓
+      </td>
+    </tr>
+    <tr>
+      <td class="val"><span class="cb {{#if has其他}}on{{/if}}"></span>其他</td>
+      <td class="val">費用：{{price其他}}</td>
+      <td class="label">寵物年齡</td>
+      <td class="val">{{pet.age}}</td>
+      <td class="val">
+        <span class="cb {{#ifEq pet.isNeutered true}}on{{/ifEq}}"></span>已結育
+        <span class="cb {{#ifEq pet.isNeutered false}}on{{/ifEq}}"></span>未結育
+      </td>
+    </tr>
+    <tr>
+      <td class="val" colspan="2"></td>
+      <td class="label">晶片號碼</td>
+      <td class="val">{{pet.chipNumber}}</td>
+      <td class="val">
+        <span class="cb {{#if pet.unregisteredIdMethod}}on{{/if}}"></span>無
+      </td>
+    </tr>
+    <tr>
+      <td class="label" rowspan="2">寵物個性</td>
+      <td class="val" colspan="5">
+        <span class="cb {{#includes pet.personality '親人'}}on{{/includes}}"></span>親人
+        <span class="cb {{#includes pet.personality '不會咬人'}}on{{/includes}}"></span>不會咬人
+        <span class="cb {{#includes pet.personality '不會咬狗貓'}}on{{/includes}}"></span>不會咬狗貓
+        <span class="cb {{#includes pet.personality '容易緊張'}}on{{/includes}}"></span>容易緊張
+      </td>
+    </tr>
+    <tr>
+      <td class="val" colspan="5">
+        <span class="cb {{#includes pet.personality '親狗'}}on{{/includes}}"></span>親狗
+        <span class="cb {{#includes pet.personality '會咬人'}}on{{/includes}}"></span>會咬人
+        <span class="cb {{#includes pet.personality '會咬狗貓'}}on{{/includes}}"></span>會咬狗貓
+        <span class="cb {{#includes pet.personality '有攻擊性'}}on{{/includes}}"></span>有攻擊性
+      </td>
+    </tr>
+  </table>
+
+  <table class="info" style="margin-top:2mm;">
+    <tr>
+      <td class="label">儲值金額</td>
+      <td class="val" style="width:34mm;">{{storedValueDisplay}}</td>
+      <td class="label" rowspan="4" style="width:22mm;">寵物身體狀態檢視(目視)</td>
+      <td class="val" style="width:60mm;">
+        1.眼睛　<span class="cb {{#ifEq physicalExamination.eyes '正常'}}on{{/ifEq}}"></span>正常
+        <span class="cb {{#ifEq physicalExamination.eyes '異常'}}on{{/ifEq}}"></span>異常{{#if physicalExamination.eyesNoteVisible}}<span class="note-text">{{physicalExamination.eyesNote}}</span>{{/if}}
+      </td>
+    </tr>
+    <tr>
+      <td class="val" colspan="2">如需進行緊急醫療行為，需通知飼主並將寵物送往
+        <span class="cb {{#ifEq hospitalTarget '飼主'}}on{{/ifEq}}"></span>飼主
+        <span class="cb {{#ifEq hospitalTarget '店家'}}on{{/ifEq}}"></span>店家 獸醫院</td>
+      <td class="val">
+        2.耳朵　<span class="cb {{#ifEq physicalExamination.ears '正常'}}on{{/ifEq}}"></span>正常
+        <span class="cb {{#ifEq physicalExamination.ears '異常'}}on{{/ifEq}}"></span>異常{{#if physicalExamination.earsNoteVisible}}<span class="note-text">{{physicalExamination.earsNote}}</span>{{/if}}
+      </td>
+    </tr>
+    <tr>
+      <td class="label">獸醫院名稱</td>
+      <td class="val">{{owner.preferredAnimalHospital}}</td>
+      <td class="val">
+        3.牙齒　<span class="cb {{#ifEq physicalExamination.teeth '正常'}}on{{/ifEq}}"></span>正常
+        <span class="cb {{#ifEq physicalExamination.teeth '異常'}}on{{/ifEq}}"></span>異常{{#if physicalExamination.teethNoteVisible}}<span class="note-text">{{physicalExamination.teethNote}}</span>{{/if}}
+      </td>
+    </tr>
+    <tr>
+      <td class="label">獸醫院電話</td>
+      <td class="val">{{owner.preferredAnimalHospitalPhone}}</td>
+      <td class="val">
+        4.四肢　<span class="cb {{#ifEq physicalExamination.limbs '正常'}}on{{/ifEq}}"></span>正常
+        <span class="cb {{#ifEq physicalExamination.limbs '異常'}}on{{/ifEq}}"></span>異常{{#if physicalExamination.limbsNoteVisible}}<span class="note-text">{{physicalExamination.limbsNote}}</span>{{/if}}
+      </td>
+    </tr>
+    <tr>
+      <td class="label">獸醫院地址</td>
+      <td class="val" colspan="2">{{owner.preferredAnimalHospitalAddress}}</td>
+      <td class="val">
+        5.皮膚　<span class="cb {{#ifEq physicalExamination.skin '正常'}}on{{/ifEq}}"></span>正常
+        <span class="cb {{#ifEq physicalExamination.skin '異常'}}on{{/ifEq}}"></span>異常{{#if physicalExamination.skinNoteVisible}}<span class="note-text">{{physicalExamination.skinNote}}</span>{{/if}}
+      </td>
+    </tr>
+    <tr>
+      <td class="label">獸醫院名稱</td>
+      <td class="val" colspan="2">安欣動物醫院　店家</td>
+      <td class="val">
+        6.皮毛　<span class="cb {{#includes physicalExamination.furValues '正常'}}on{{/includes}}"></span>正常
+        <span class="cb {{#includes physicalExamination.furValues '異常'}}on{{/includes}}"></span>異常
+        <span class="cb {{#includes physicalExamination.furValues '打結'}}on{{/includes}}"></span>打結
+        <span class="cb {{#includes physicalExamination.furValues '跳蚤壁蝨'}}on{{/includes}}"></span>跳蚤壁蝨{{#if physicalExamination.furNoteVisible}}<span class="note-text">{{physicalExamination.furNote}}</span>{{/if}}
+      </td>
+    </tr>
+    <tr>
+      <td class="label">獸醫院電話</td>
+      <td class="val" colspan="3">03-3367775</td>
+    </tr>
+    <tr>
+      <td class="label">獸醫院地址</td>
+      <td class="val" colspan="3">桃園市桃園區中福街60號</td>
+    </tr>
+  </table>
+
+  <table class="info" style="margin-top:2mm;">
+    <tr>
+      <td class="label" rowspan="4" style="width:22mm;">寵物病史</td>
+      <td class="val" style="padding:2pt 3pt;">
+        <span class="cb {{#includes pet.medicalHistory '心臟病'}}on{{/includes}}"></span>心臟病
+        <span class="cb {{#includes pet.medicalHistory '氣喘'}}on{{/includes}}"></span>氣喘
+        <span class="cb {{#includes pet.medicalHistory '氣管塌陷'}}on{{/includes}}"></span>氣管塌陷
+        <span class="cb {{#includes pet.medicalHistory '白內障'}}on{{/includes}}"></span>白內障
+        <span class="cb {{#includes pet.medicalHistory '癲癇'}}on{{/includes}}"></span>癲癇
+        <span class="cb {{#includes pet.medicalHistory '心絲蟲'}}on{{/includes}}"></span>心絲蟲
+        <span class="cb {{#includes pet.medicalHistory '艾利希體'}}on{{/includes}}"></span>艾利希體
+        <span class="cb {{#includes pet.medicalHistory '腹膜炎'}}on{{/includes}}"></span>腹膜炎
+      </td>
+    </tr>
+    <tr>
+      <td class="val">
+        <span class="cb {{#includes pet.medicalHistory '腹積水'}}on{{/includes}}"></span>腹積水
+        <span class="cb {{#includes pet.medicalHistory '手術外傷未癒合'}}on{{/includes}}"></span>手術外傷未癒合
+        <span class="cb {{#includes pet.medicalHistory '髖關節問題'}}on{{/includes}}"></span>髖關節問題
+        <span class="cb {{#includes pet.medicalHistory '骨折'}}on{{/includes}}"></span>骨折
+        <span class="cb {{#includes pet.medicalHistory '腸炎'}}on{{/includes}}"></span>腸炎
+        <span class="cb {{#includes pet.medicalHistory '血便'}}on{{/includes}}"></span>血便
+        <span class="cb {{#includes pet.medicalHistory '血尿'}}on{{/includes}}"></span>血尿
+        <span class="cb {{#includes pet.medicalHistory '懷孕'}}on{{/includes}}"></span>懷孕
+      </td>
+    </tr>
+    <tr>
+      <td class="val">
+        <span class="cb {{#includes pet.medicalHistory '傳染性疾病'}}on{{/includes}}"></span>傳染性疾病
+        <span class="cb {{#includes pet.medicalHistory '其它'}}on{{/includes}}"></span>其它
+      </td>
+    </tr>
+    <tr>
+      <td class="val">
+        <span class="cb {{#if medicalHistoryNone}}on{{/if}}"></span>以上皆無
+      </td>
+    </tr>
+  </table>
+
+  <p style="margin-top:2mm; font-size:9.5pt; border:0.6pt solid #000; padding:2mm;">
+    <strong>狀況良好</strong>　飼主應告知義務，若因隱瞞病況發生意外或死亡，經法定程序判定店家無疏失，店家不須負損害賠償責任。
+  </p>
+
+  <p style="font-size:8.5pt; margin-top:1mm;">
+    ＊以上資料由飼主本人提供，並同意將資料內容提供於公司存續期間以電話、簡訊和寄發DM方式，提供相關活動或促銷訊息、或帶寵物到動物醫院留存相關資料使用。
+  </p>
+  <ol style="font-size:8.5pt; margin-top:1mm; padding-left:6mm;">
+    <li>除本契約另有約定、特殊緊急情況、或不可抗力之情況外，未經飼主同意，店家不得將寵物帶離美容場所（同上店家地址）、轉售、轉讓或以其他變相方法作為其他用途。</li>
+    <li>飼主應於美容當日，將寵物領回，如經通知1日內未領回，依動保法第29條第一款通知主管機關，視為飼主惡意棄養，相關罰金為3萬~15萬元，其他衍生性費用將跟飼主求償，例：人員加班費等。</li>
+    <li>寵物發生攻擊行為，如因飼主未普盡告知義務而造成店內人員傷亡、財物毀損等費用，將全額向飼主（寵物占有權人）求償。</li>
+    <li>店家應按本契約約定內容提供一定品質之美容服務。若因可歸責於店家或其受僱人之事由，導致其提供之美容服務有瑕疵，造成飼主發生損失的情況，飼主得要求減少價金或解除契約。</li>
+    <li>本契約之任一方得隨時終止本契約，若因本契約之終止而生損害之一方得向他方請求賠償。</li>
+    <li>於美容服務期間，如發現寵物有異常狀態，應立即通知飼主並妥善處理，如發生異常狀態的原因，可歸責店家之操作行為，店家應負損害賠償責任，例：摔傷寵物等。</li>
+    <li>因本契約所生之訴訟，雙方合意以 地方法院為管轄法院。</li>
+    <li>其他：<span class="blank xwide"></span></li>
+  </ol>
+
+  <div style="margin-top:5mm; display:flex; align-items:flex-end; font-size:10pt;">
+    <div>民國</div>
+    <div class="blank narrow">{{rocYear}}</div><div>年</div>
+    <div class="blank narrow">{{rocMonth}}</div><div>月</div>
+    <div class="blank narrow">{{rocDay}}</div><div>日</div>
+  </div>
+  <div style="margin-top:3mm; display:flex; align-items:flex-end; font-size:10pt;">
+    <div>飼主簽名：<span class="blank wide"></span></div>
+    <div style="margin-left:12mm;">美容人員簽名：<span class="blank wide"></span></div>
+  </div>
+</section>
+
+<!-- ================= PAGE 2 ================= -->
+<section class="page">
+  <h1>貳寶寵物美容工坊：犬貓美容定型化契約</h1>
+
+  <div class="section-title">簽約注意事項</div>
+  <p>一、本契約之審閱期間不得少於 1 日，提供單次犬、貓美容或必要時，並應給予即時或合理之審閱期間。但審閱期間經雙方合意另行約定者，不在此限。</p>
+  <p>二、乙方應於簽訂本契約前，提供「寵物美容契約書」，並由甲、乙雙方就相關內容共同填妥。乙方並應出示本定型化契約書空白文本，就其契約條款逐條向甲方為說明，使甲方充分瞭解其權利義務。</p>
+  <p>三、本契約雖為定型化契約之一種，甲、乙方仍得針對個別狀況，經雙方合意後，增、刪、修改內容。雙方不得以本契約內容為主管機關所定為由，主張無法修改，亦不得為有利於己之修正後，宣稱為政府機關版本，而主張不得修改。</p>
+
+  <div class="section-title">一、基本資料</div>
+
+  <div class="indent"><strong>(一) 犬貓資訊</strong></div>
+  <table class="info">
+    <tr>
+      <td class="label">名稱</td>
+      <td class="val" colspan="2">{{pet.name}}</td>
+      <td class="label">種類</td>
+      <td class="val">
+        <span class="cb {{#ifEq pet.species '犬'}}on{{/ifEq}}"></span>犬
+        <span class="cb {{#ifEq pet.species '貓'}}on{{/ifEq}}"></span>貓
+      </td>
+      <td class="label">品種</td>
+      <td class="val">{{pet.breed}}</td>
+    </tr>
+    <tr>
+      <td class="label">性別</td>
+      <td class="val">
+        <span class="cb {{#ifEq pet.gender '公'}}on{{/ifEq}}"></span>公
+        <span class="cb {{#ifEq pet.gender '母'}}on{{/ifEq}}"></span>母
+      </td>
+      <td class="label">年齡</td>
+      <td class="val" colspan="4">{{pet.age}}</td>
+    </tr>
+    <tr>
+      <td class="label">晶片號碼</td>
+      <td class="val" colspan="6">{{pet.chipNumber}}</td>
+    </tr>
+    <tr>
+      <td class="val" colspan="7" style="padding-left:4mm;">
+        <span class="cb {{#if pet.unregisteredIdMethod}}on{{/if}}"></span>若未登記，身份識別方式：{{pet.unregisteredIdMethod}}
+      </td>
+    </tr>
+  </table>
+
+  <div class="indent" style="margin-top:3mm;"><strong>(二) 消費者/飼主（甲方）</strong></div>
+  <table class="info">
+    <tr>
+      <td class="label">姓名</td>
+      <td class="val">{{owner.name}}</td>
+      <td class="label">身分證字號</td>
+      <td class="val">{{owner.nationalId}}</td>
+    </tr>
+    <tr>
+      <td class="label">聯絡電話</td>
+      <td class="val" colspan="3">{{owner.phone}}</td>
+    </tr>
+    <tr>
+      <td class="label">通訊地址</td>
+      <td class="val" colspan="3">{{owner.address}}</td>
+    </tr>
+    <tr>
+      <td class="label">緊急聯絡人</td>
+      <td class="val">{{owner.emergencyContactName}}{{#if owner.emergencyContactRelationship}} ({{owner.emergencyContactRelationship}}){{/if}}</td>
+      <td class="label">緊急聯絡人電話</td>
+      <td class="val">{{owner.emergencyContactPhone}}</td>
+    </tr>
+    <tr>
+      <td class="label">指定動物醫療機構</td>
+      <td class="val" colspan="3">{{ownerPreferredHospitalLine}}</td>
+    </tr>
+  </table>
+  <p style="font-size:9.5pt; margin-top:1mm;">飼主未指定時，緊急就醫動物醫療機構為 安欣動物醫院 或就近之合格動物醫療機構。</p>
+
+  <div class="indent" style="margin-top:3mm;"><strong>(三) 企業經營者（乙方）</strong></div>
+  <table class="info">
+    <tr>
+      <td class="label">商號名稱</td>
+      <td class="val">貳寶寵物美容工坊</td>
+      <td class="label">電話</td>
+      <td class="val">03-3310279</td>
+    </tr>
+    <tr>
+      <td class="label">代表人姓名</td>
+      <td class="val">呂麗霞</td>
+      <td class="label">公司登記地址</td>
+      <td class="val">桃園市桃園區慈文路322巷5號</td>
+    </tr>
+  </table>
+
+  <div class="section-title">二、美容服務預約</div>
+  <p>(一) 甲方每次委託乙方提供犬/貓美容服務時，應先向乙方進行預約，並以乙方回覆同意為預約成立。甲方應依預約時間準時將寵物送達乙方店鋪接受服務。如甲方未於預約時間內到店，乙方得依實際情形取消該次預約，並保留是否重新安排服務時間之權利。</p>
+  <p>(二) 經雙方確認之美容項目，乙方應記載於表單中，作為該次服務與收費之依據，並提供甲方調閱。</p>
+  <p>(三) 乙方於每次服務開始前，應向甲方說明該次美容服務之費用（包括但不限於服務費、商品材料費、特殊耗材費等），並提供明細予甲方確認，未載明或未經甲方同意之費用，不得逕行收取。</p>
+  <p>(四) 乙方於每次服務完成後，應提供當次服務明細予甲方確認並簽名。服務明細應載明：服務時間、實際執行項目、特殊處置項目（如廢毛、拆結等）及費用。</p>
+
+  <div class="section-title">三、犬/貓健康狀況、風險告知與責任限制</div>
+  <p>(一) 甲方應本誠信原則，於每一次美容服務前主動如實告知犬/貓之疾病、過敏、身體狀況、需特殊照護、性格與情緒特性，並特別揭露寵物是否已年滿八歲，以利乙方紀載於該次美容紀錄中。前述資訊為乙方評估服務風險與提供安全服務之必要依據，甲方不得省略延遲或隱匿。</p>
+  <p>(二) 乙方有權視犬/貓情形之嚴重程度（年滿八歲以上或具有明顯健康風險），決定是否中止當次服務，以確保犬/貓安全與服務品質。</p>
+  <p>(三) 如甲方未誠實揭露或未提供前項資訊，致乙方無法合理判斷犬/貓是否適合接受該次美容服務者，乙方對於因此導致犬/貓健康惡化、急症發作或其他非可歸責於乙方操作或人員疏失所致，不負任何賠償責任，甲方應自負相關風險與後果，相關醫療費用由甲方負擔。</p>
+  <p>(四) 即使甲方已依本條第(一)項誠實揭露犬/貓狀況，美容服務期間仍可能因犬/貓個體差異、體質或既有疾病，引發不可預測之反應或急性症（例如：突發性過敏、氣喘、癲癇、心臟病發作、虛脫、情緒失控等）。如該情形非可歸責於乙方操作或人員疏失所致，乙方不負任何賠償責任，相關醫療費用由甲方負擔。</p>
+
+  <div class="section-title">四、乙方責任</div>
+  <p>(一) 於每次美容服務前，應向甲方詢問並紀錄犬/貓之健康狀況、疾病史與個性特質，作為服務安全依據。</p>
+  <p>(二) 乙方於美容過程中，應提供犬/貓安全、乾淨、通風、遮蔽、照明及具適當溫度之環境，並應符合下列動物福利基本要求：</p>
+  <div class="indent2">
+    <p>1、如提供食物或飲水，應確保其適當、乾淨且無害。</p>
+    <p>2、如以籠具、繩索或鍊圈限制犬/貓活動，其空間應足以使犬/貓充分伸展，活動器具應長度適宜，不妨礙犬/貓基本活動需求。應避免犬、貓遭受騷擾、虐待或傷害。</p>
+    <p>3、應防止犬/貓遭受騷擾、虐待、脅迫或不當刺激。</p>
+    <p>4、如有危害發生或發生之虞時，乙方應立即將犬/貓移至安全空間，並提供妥善照護。</p>
+    <p>5、如乙方有提供運輸服務，應妥善安排犬/貓之通風與安全，避免犬/貓於運輸中遭受驚嚇、不適或傷害。</p>
+    <p>6、乙方應就犬/貓之個體狀況提供合理妥適之照護。</p>
+  </div>
+  <p>(三) 若犬/貓於服務期間出現健康異常、外傷或急症，乙方應立即通知甲方或其緊急聯絡人，並優先依甲方所指定之動物醫療機構送醫；如未指定，得由乙方就近選擇合格動物醫療機構就診。乙方應提供實際送醫之診療機構資訊（含名稱、電話）予甲方。</p>
+  <p>(四) 如犬/貓於美容服務期間死亡，或於送醫過程中死亡，乙方應立即通知甲方或緊急聯絡人，如甲方接獲通知當日未前往處理，乙方得於次日代甲方處理後續事宜，甲方不得異議。</p>
+  <p>(五) 如發生前述第(三)或第(四)項情形，經查明係可歸責於乙方之作業疏失或違反照護義務所致，乙方應負賠償責任，賠償金額以甲方提供之相關佐證資料具體認定。</p>
+
+  <div class="section-title">五、甲方義務及責任</div>
+  <p>(一) 甲方應於乙方完成犬/貓美容服務後，依雙方約定時間內接回寵物。如逾時未接回，應支付逾時費用，每小時新臺幣 300 元。</p>
+  <p>(二) 如甲方未於乙方當日營業時間結束前接回寵物，乙方應以電話、簡訊、LINE 或其他約定方式通知甲方或其緊急聯絡人；若通知未果或仍未接回者，乙方仍應善盡照護責任，並得依以下方式計算並請求照護費與違約費：</p>
+  <div class="indent2">
+    <p>1. 照護費：每小時逾時費 × 實際照護時數；</p>
+    <p>2. 違約費：前述費用加計 5% 為違約處理費，單日費用上限為該次服務總費用之三倍。</p>
+  </div>
+  <p>(三) 如甲方逾三日未接回犬/貓，乙方應通報動物保護主管機關，或開放第三人認養，甲方不得異議。</p>
+  <p>(四) 如因天災、事變、政府命令或其他不可抗力事由，致甲方無法依約定時間接回寵物時，乙方應善盡照護義務，協助進行暫時安置。安置期間所生之必要費用（包括但不限於飼料、照護用品等），乙方得提供費用明細向甲方請求償付，甲方應予以支付。</p>
+  <p>(五) 前項安置期間如有醫療需求或不幸發生犬/貓死亡等情形，乙方應依合約相關條款處理，並即時通知甲方。</p>
+  <p>(六) 不可抗力之原因消滅後，乙方應即時通知甲方或緊急聯絡人接回寵物。如甲方於通知當日仍未接回，乙方得通報動物保護主管機關，或開放第三人認養，甲方不得異議。</p>
+
+  <div class="section-title">六、契約解除及終止之退費方式</div>
+  <p>(一) 美容服務實施前，甲方任意解除契約：</p>
+  <div class="indent2">
+    <p>1. 美容服務實施前，甲方得隨時解除契約。</p>
+    <p>2. 甲方應支付美容總費用 5% 之解約手續費予乙方。</p>
+    <p>3. 乙方應於解約日後三日內，將已收取之費用扣除手續費後，依甲方原支付方式將剩餘金額退還甲方。</p>
+  </div>
+  <p>(二) 美容服務實施後，甲方任意解除或終止包月美容契約：</p>
+  <div class="indent2">
+    <p>1. 扣除已接受美容服務之單價。</p>
+    <p>2. 甲方應支付美容包月總費用 5% 之終止手續費予乙方。</p>
+    <p>3. 乙方應於終止日後三日內，將已收取之費用扣除已接受美容服務之單價及終止手續費後，依甲方原支付方式將剩餘金額退還甲方。</p>
+  </div>
+  <p>(三) 可歸責乙方之事由解除或終止契約：</p>
+  <div class="indent2">
+    <p>1. 如乙方有下列情形之一，除取得甲方同意外，甲方得解除或終止本契約或單次美容預約：</p>
+    <div class="indent2">
+      <p>(1) 乙方未經說明即將本契約之全部或部分服務轉由非其管理之第三方犬貓美容業者履行；</p>
+      <p>(2) 乙方未事前通知，即單方面變更原約定之服務地點；</p>
+      <p>(3) 乙方未經甲方同意，即任意更換甲方於預約時已指定之美容服務人員。</p>
+    </div>
+    <p>2. 前項情形發生時，乙方應於美容契約解除或終止後三日內，將已收取之費用扣除已接受美容服務之單價，依甲方原支付方式將剩餘金額退還甲方。</p>
+  </div>
+  <p>(四) 不可歸責於雙方之契約解除或終止：</p>
+  <div class="indent2">
+    <p>1. 如發生下列不可歸責於甲乙雙方之事由，致本契約無法如期履行或繼續執行時，任一方得提出解除或終止契約，雙方互不負違約責任：</p>
+    <div class="indent2">
+      <p>(1) 因天災、重大傳染病、政府命令或其他不可抗力事件，致店鋪無法營運、交通受阻或公共安全風險升高；</p>
+      <p>(2) 犬/貓因死亡、重大疾病、術後恢復期、健康惡化或明顯拒絕配合美容過程，致難以繼續提供安全服務。</p>
+    </div>
+    <p>2. 前項情形經雙方確認者，乙方應於美容契約解除或終止日後三日內，將已收取之費用扣除已接受美容服務之單價後，依甲方原支付方式將剩餘金額退還甲方。</p>
+    <p>3. 乙方得要求甲方提供合理證明文件（如診斷證明、政府公告截圖等）以佐證解除或終止原因。如無法證明為不可歸責之事由，則依本契約其他解除條款辦理。</p>
+  </div>
+
+  <div class="section-title">七、其他事項</div>
+  <p>(一) 甲方同意，乙方得於寵物接受美容服務時拍攝犬/貓之照片及影片，進行服務品質管理，該等影像之著作權歸乙方所有，乙方得基於行銷、教育或品牌宣傳之需要，於國內外媒體平台（包括但不限於網站、社群媒體、廣告、電視、印刷品等）公開播送、傳輸、展示、發表、散布或發行。</p>
+  <p>(二) 與本契約相關之包括服務紀錄、廣告文宣、收費明細、各類簽收單等，均視為本契約之一部分，與本契約具有相同效力，如內容與本契約相牴觸者，以本契約約定為準。</p>
+  <p>(三) 本契約之解釋以中華民國法律為準據法，如因本契約涉訟，雙方同意以消費關係發生地之地方法院為第一審管轄法院。</p>
+  <p>(四) 本契約自簽署日起生效，由甲乙雙方各執一份為憑。</p>
+
+  <p style="margin-top:6mm;">簽署人已詳閱本契約全部條款，對其內容均已充分瞭解並無異議，並同意簽署本契約以示同意。</p>
+
+  <div style="margin-top:12mm; display:flex; justify-content:space-between;">
+    <div>甲方簽章：<span class="blank wide"></span></div>
+    <div>乙方簽章：<span class="blank wide"></span></div>
+  </div>
+  <div style="margin-top:10mm;">
+    簽署日期：民國
+    <span class="blank narrow">{{rocYear}}</span> 年
+    <span class="blank narrow">{{rocMonth}}</span> 月
+    <span class="blank narrow">{{rocDay}}</span> 日
+  </div>
+</section>
+
+</body>
+</html>

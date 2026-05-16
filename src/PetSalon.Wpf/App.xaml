@@ -1,0 +1,48 @@
+<Application x:Class="PetSalon.Wpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PetSalon.Wpf.ViewModels"
+             xmlns:v="clr-namespace:PetSalon.Wpf.Views"
+             xmlns:dlg="clr-namespace:PetSalon.Wpf.Dialogs"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Brushes.xaml" />
+                <ResourceDictionary Source="Themes/Converters.xaml" />
+                <ResourceDictionary Source="Themes/Controls.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+                <v:HomeView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:OwnerPageViewModel}">
+                <v:OwnerPageView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:PetEditViewModel}">
+                <v:PetEditView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:CalendarViewModel}">
+                <v:CalendarView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:DailyAppointmentsViewModel}">
+                <v:DailyAppointmentsView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:AppointmentEditViewModel}">
+                <v:AppointmentEditView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:GroomingPageViewModel}">
+                <v:GroomingPageView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:CustomerFormViewModel}">
+                <v:CustomerFormView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:BackupPageViewModel}">
+                <v:BackupPageView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ContractGenerateDialogViewModel}">
+                <dlg:ContractGenerateDialog />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
