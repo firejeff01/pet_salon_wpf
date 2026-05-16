@@ -3,11 +3,14 @@ name: Build MSI
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
-  contents: write  # create release + upload asset
+  contents: write  # bump commit, push tag, create release + upload asset
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -15,6 +18,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # 用預設 GITHUB_TOKEN 即可 push 回 main（contents: write）
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
@@ -24,6 +30,30 @@ jobs:
       - name: Install WiX v5
         run: dotnet tool install --global wix --version 5.*
 
+      # 只在 push 觸發時自動 +1 patch；workflow_dispatch 維持目前版本只 build MSI
+      - name: Bump patch version in csproj
+        if: github.event_name == 'push'
+        shell: pwsh
+        run: |
+          $csproj = 'src/PetSalon.Wpf/PetSalon.Wpf.csproj'
+          [xml]$xml = Get-Content $csproj
+          $pg = $xml.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1
+          if (-not $pg) { throw 'csproj <Version> missing' }
+
+          $old = $pg.SelectSingleNode('Version').InnerText.Trim()
+          $parts = $old.Split('.')
+          if ($parts.Count -lt 3) { throw "Invalid version '$old', expected X.Y.Z" }
+          $parts[2] = ([int]$parts[2] + 1).ToString()
+          $new = $parts -join '.'
+          $newFour = "$new.0"
+
+          $pg.SelectSingleNode('Version').InnerText = $new
+          $pg.SelectSingleNode('AssemblyVersion').InnerText = $newFour
+          $pg.SelectSingleNode('FileVersion').InnerText = $newFour
+          $xml.Save((Resolve-Path $csproj))
+
+          Write-Host "Bumped $old -> $new"
+
       - name: Read version from csproj
         id: ver
         shell: pwsh
@@ -31,13 +61,6 @@ jobs:
           [xml]$xml = Get-Content 'src/PetSalon.Wpf/PetSalon.Wpf.csproj'
           $v = ($xml.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1).Trim()
           if (-not $v) { throw 'csproj <Version> missing' }
-          # 若觸發是 tag push，確保 tag 形式 v{X.Y.Z} 與 csproj 版本相符
-          if ('${{ github.ref_type }}' -eq 'tag') {
-            $tag = '${{ github.ref_name }}'.TrimStart('v','V')
-            if ($tag -ne $v) {
-              throw "Tag $tag 與 csproj <Version> $v 不一致；請先把 csproj <Version> 改成 $tag 後再 push tag。"
-            }
-          }
           "version=$v" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
           Write-Host "version: $v"
 
@@ -52,13 +75,26 @@ jobs:
           path: out/PetSalon-Setup-v*.msi
           if-no-files-found: error
 
-      # 只有 tag 觸發才建 GitHub Release 附 MSI
+      # build 成功後才把 bump 結果寫回 repo + 打 tag
+      - name: Commit bumped csproj and push tag
+        if: github.event_name == 'push'
+        shell: pwsh
+        run: |
+          $ver = '${{ steps.ver.outputs.version }}'
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/PetSalon.Wpf/PetSalon.Wpf.csproj
+          git commit -m "chore: bump version to v$ver [skip ci]"
+          git tag "v$ver"
+          git push origin HEAD:main
+          git push origin "v$ver"
+
       - name: Create Release & attach MSI
-        if: github.ref_type == 'tag'
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: 貳寶寵物美容工坊 ${{ github.ref_name }}
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: 貳寶寵物美容工坊 v${{ steps.ver.outputs.version }}
           body: |
             ## 安裝
             下載下方 `PetSalon-Setup-v${{ steps.ver.outputs.version }}.msi` 點兩下執行即可。
