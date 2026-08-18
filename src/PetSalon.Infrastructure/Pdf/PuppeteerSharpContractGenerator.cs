@@ -73,6 +73,13 @@ public sealed class PuppeteerSharpContractGenerator : IPdfGenerator, IAsyncDispo
                 Browser = SupportedBrowser.Chrome,
             });
             var installed = await browserFetcher.DownloadAsync();
+            if (!File.Exists(installed.GetExecutablePath()))
+            {
+                // BrowserFetcher 可能在中斷下載後留下版本目錄，誤判為已安裝。
+                // 僅移除該筆不完整的快取版本，再重新下載，避免 PDF 永久無法產生。
+                browserFetcher.Uninstall(installed.BuildId);
+                installed = await browserFetcher.DownloadAsync();
+            }
             _browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
                 Headless = true,

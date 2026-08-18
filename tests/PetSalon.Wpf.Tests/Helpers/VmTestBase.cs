@@ -32,6 +32,7 @@ public abstract class VmTestBase : IDisposable
         services.AddSingleton<StoredValueService>();
         services.AddScoped<OwnerService>();
         services.AddScoped<PetService>();
+        services.AddScoped<CustomerRegistrationService>();
         services.AddScoped<AppointmentService>();
         services.AddScoped<GroomingRecordService>();
 

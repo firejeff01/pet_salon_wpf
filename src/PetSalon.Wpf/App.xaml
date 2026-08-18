@@ -40,6 +40,9 @@
             <DataTemplate DataType="{x:Type vm:BackupPageViewModel}">
                 <v:BackupPageView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SignatureSettingsViewModel}">
+                <v:SignatureSettingsView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:ContractGenerateDialogViewModel}">
                 <dlg:ContractGenerateDialog />
             </DataTemplate>

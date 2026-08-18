@@ -34,10 +34,19 @@ public sealed class ContractService
     /// 用於對話框中顯示預覽，供使用者確認後再呼叫 CommitPreviewAsync 正式寫入。
     /// </summary>
     public async Task<ContractGenerateOutput> PreviewAsync(string groomingRecordId, CancellationToken ct = default)
+        => await PreviewAsync(groomingRecordId, shopSignaturePng: null, ct);
+
+    public async Task<ContractGenerateOutput> PreviewAsync(
+        string groomingRecordId,
+        byte[]? shopSignaturePng,
+        CancellationToken ct = default)
     {
         var rec = await LoadRecordAsync(groomingRecordId, ct);
-        var data = BuildRenderData(rec, ownerSignature: null);
-        var previewDir = Path.Combine(Path.GetTempPath(), "petsalon-contract-preview");
+        var data = BuildRenderData(rec, ownerSignature: null, shopSignaturePng);
+        var previewDir = Path.Combine(
+            Path.GetTempPath(),
+            "petsalon-contract-preview",
+            Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(previewDir);
         // 預覽用固定 version 0（CommitPreview 時會被覆寫為正式 version）
         return await _pdf.GenerateContractAsync(data, previewDir, nextVersion: 0, ct);
@@ -47,9 +56,16 @@ public sealed class ContractService
     /// 確認預覽後正式產 PDF 到 contracts 目錄並寫 DB；同時刪除 preview 檔。
     /// </summary>
     public async Task<ContractGenerateResult> CommitPreviewAsync(string groomingRecordId, string? previewPath, CancellationToken ct = default)
+        => await CommitPreviewAsync(groomingRecordId, previewPath, shopSignaturePng: null, ct);
+
+    public async Task<ContractGenerateResult> CommitPreviewAsync(
+        string groomingRecordId,
+        string? previewPath,
+        byte[]? shopSignaturePng,
+        CancellationToken ct = default)
     {
         var rec = await LoadRecordAsync(groomingRecordId, ct);
-        var data = BuildRenderData(rec, ownerSignature: null);
+        var data = BuildRenderData(rec, ownerSignature: null, shopSignaturePng);
         var nextVersion = (rec.ContractPaths.Count == 0 ? 0 : rec.ContractPaths.Max(c => c.Version)) + 1;
         var dayFolder = Path.Combine(_options.OutputDir, rec.ServiceDate.ToString("yyyyMMdd"));
         var output = await _pdf.GenerateContractAsync(data, dayFolder, nextVersion, ct);
@@ -74,7 +90,10 @@ public sealed class ContractService
             ?? throw AppException.NotFound("RECORD_NOT_FOUND", $"美容紀錄 {groomingRecordId} 不存在");
     }
 
-    private ContractRenderData BuildRenderData(GroomingRecord rec, byte[]? ownerSignature)
+    private ContractRenderData BuildRenderData(
+        GroomingRecord rec,
+        byte[]? ownerSignature,
+        byte[]? shopSignaturePng)
     {
         var appt = rec.Appointment ?? throw AppException.Conflict("MISSING_DATA", "找不到對應的預約");
         var owner = appt.Owner ?? throw AppException.Conflict("MISSING_DATA", "找不到對應的飼主");
@@ -84,7 +103,7 @@ public sealed class ContractService
         var hospPhone = string.IsNullOrWhiteSpace(owner.PreferredAnimalHospitalPhone) ? DefaultHospital.Phone : owner.PreferredAnimalHospitalPhone;
         var hospAddress = string.IsNullOrWhiteSpace(owner.PreferredAnimalHospitalAddress) ? DefaultHospital.Address : owner.PreferredAnimalHospitalAddress;
 
-        return new ContractRenderData(owner, pet, appt, rec, ownerSignature, hospName, hospPhone, hospAddress);
+        return new ContractRenderData(owner, pet, appt, rec, ownerSignature, hospName, hospPhone, hospAddress, shopSignaturePng);
     }
 
     public async Task<ContractGenerateResult> GenerateAsync(ContractGenerateInput input, CancellationToken ct = default)
@@ -108,7 +127,16 @@ public sealed class ContractService
         var hospPhone = string.IsNullOrWhiteSpace(owner.PreferredAnimalHospitalPhone) ? DefaultHospital.Phone : owner.PreferredAnimalHospitalPhone;
         var hospAddress = string.IsNullOrWhiteSpace(owner.PreferredAnimalHospitalAddress) ? DefaultHospital.Address : owner.PreferredAnimalHospitalAddress;
 
-        var data = new ContractRenderData(owner, pet, appt, rec, input.OwnerSignaturePng, hospName, hospPhone, hospAddress);
+        var data = new ContractRenderData(
+            owner,
+            pet,
+            appt,
+            rec,
+            input.OwnerSignaturePng,
+            hospName,
+            hospPhone,
+            hospAddress,
+            input.ShopSignaturePng);
 
         var nextVersion = (rec.ContractPaths.Count == 0 ? 0 : rec.ContractPaths.Max(c => c.Version)) + 1;
         var dayFolder = Path.Combine(_options.OutputDir, rec.ServiceDate.ToString("yyyyMMdd"));

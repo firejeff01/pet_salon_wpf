@@ -10,6 +10,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -22,7 +23,30 @@
                    Foreground="{StaticResource Brown500Brush}"
                    Text="以下為契約預覽。請確認內容無誤後再按「產生 PDF」存檔，按下後將寫入正式契約目錄並開啟。" />
 
-        <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6"
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="店家簽名：" VerticalAlignment="Center" />
+            <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableSignatures}"
+                      SelectedItem="{Binding SelectedSignature}"
+                      DisplayMemberPath="Name" MinHeight="32"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+                      AutomationProperties.AutomationId="cmb-contract-shop-signature" />
+            <Button Grid.Column="2" Content="本次不套用" Margin="8,0,0,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding ClearSignatureCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+                    AutomationProperties.AutomationId="btn-contract-clear-signature" />
+            <TextBlock Grid.Column="3" Margin="10,0,0,0" VerticalAlignment="Center"
+                       FontSize="11" Foreground="{StaticResource Brown500Brush}"
+                       Text="預設簽名會自動選取；也可只針對本份契約切換。" />
+        </Grid>
+
+        <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6"
                 Background="White">
             <Grid>
                 <!-- 載入中提示，PreviewUri 為 null 時顯示 -->
@@ -40,7 +64,7 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="3" Margin="0,12,0,0">
+        <Grid Grid.Row="4" Margin="0,12,0,0">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"
                        VerticalAlignment="Center" TextWrapping="Wrap"
                        Visibility="{Binding ErrorMessage, Converter={StaticResource NotNullToVisibilityConverter}}" />
@@ -50,7 +74,7 @@
                         AutomationProperties.AutomationId="btn-contract-cancel" />
                 <Button Content="產生 PDF" Style="{StaticResource PrimaryButtonStyle}"
                         Command="{Binding GenerateCommand}" IsDefault="True"
-                        IsEnabled="{Binding PreviewUri, Converter={StaticResource NotNullToBoolConverter}}"
+                        IsEnabled="{Binding CanGenerate}"
                         AutomationProperties.AutomationId="btn-generate-contract" />
             </StackPanel>
         </Grid>

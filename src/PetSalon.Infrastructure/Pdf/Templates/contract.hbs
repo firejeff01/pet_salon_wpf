@@ -37,6 +37,8 @@
   .blank.wide { min-width: 50mm; }
   .blank.narrow { min-width: 10mm; }
   .blank.xwide { min-width: 80mm; }
+  .signature-img { display: block; max-width: 48mm; max-height: 11mm;
+                   object-fit: contain; margin: 0 auto; }
 
   /* Table styling used on page 1 basic-info block and service record. */
   table { border-collapse: collapse; width: 100%; }
@@ -269,7 +271,7 @@
   </div>
   <div style="margin-top:3mm; display:flex; align-items:flex-end; font-size:10pt;">
     <div>飼主簽名：<span class="blank wide"></span></div>
-    <div style="margin-left:12mm;">美容人員簽名：<span class="blank wide"></span></div>
+    <div style="margin-left:12mm;">美容人員簽名：<span class="blank wide">{{#if shopSignatureDataUrl}}<img class="signature-img" src="{{shopSignatureDataUrl}}" alt="店家簽名" />{{/if}}</span></div>
   </div>
 </section>
 
@@ -445,7 +447,7 @@
 
   <div style="margin-top:12mm; display:flex; justify-content:space-between;">
     <div>甲方簽章：<span class="blank wide"></span></div>
-    <div>乙方簽章：<span class="blank wide"></span></div>
+    <div>乙方簽章：<span class="blank wide">{{#if shopSignatureDataUrl}}<img class="signature-img" src="{{shopSignatureDataUrl}}" alt="店家簽名" />{{/if}}</span></div>
   </div>
   <div style="margin-top:10mm;">
     簽署日期：民國

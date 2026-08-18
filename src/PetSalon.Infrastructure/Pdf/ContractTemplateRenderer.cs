@@ -94,6 +94,9 @@ public sealed class ContractTemplateRenderer
         var ownerSig = (data.OwnerSignaturePng is { Length: > 0 })
             ? $"data:image/png;base64,{Convert.ToBase64String(data.OwnerSignaturePng)}"
             : string.Empty;
+        var shopSig = (data.ShopSignaturePng is { Length: > 0 })
+            ? $"data:image/png;base64,{Convert.ToBase64String(data.ShopSignaturePng)}"
+            : string.Empty;
 
         var hospitalLine = string.IsNullOrWhiteSpace(data.HospitalName) || data.HospitalName == "安欣動物醫院"
             ? string.Empty
@@ -233,6 +236,7 @@ public sealed class ContractTemplateRenderer
                 ? data.Owner.StoredValueBalance.ToString("0")
                 : string.Empty,
             ["fontDataUri"] = _fontDataUri.Value,
+            ["shopSignatureDataUrl"] = shopSig,
         };
     }
 

@@ -22,15 +22,19 @@ public partial class SignaturePad : UserControl
     {
         if (!HasSignature) return null;
 
-        var w = (int)Math.Max(Ink.ActualWidth, 1);
-        var h = (int)Math.Max(Ink.ActualHeight, 1);
+        var drawing = GetInkDrawing();
+        var bounds = drawing.Bounds;
+        const double padding = 8;
+        var w = (int)Math.Ceiling(Math.Max(bounds.Width + padding * 2, 1));
+        var h = (int)Math.Ceiling(Math.Max(bounds.Height + padding * 2, 1));
         var rtb = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
 
         var visual = new DrawingVisual();
         using (var ctx = visual.RenderOpen())
         {
-            ctx.DrawRectangle(Brushes.White, null, new Rect(0, 0, w, h));
-            ctx.DrawDrawing(GetInkDrawing());
+            ctx.PushTransform(new TranslateTransform(-bounds.X + padding, -bounds.Y + padding));
+            ctx.DrawDrawing(drawing);
+            ctx.Pop();
         }
         rtb.Render(visual);
 

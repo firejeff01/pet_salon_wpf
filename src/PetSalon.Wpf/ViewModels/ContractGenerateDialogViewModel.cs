@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +16,10 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     public ContractGenerateDialogViewModel(IServiceScopeFactory scope, IDialogService dialog) : base(scope)
     {
         _dialog = dialog;
+        PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IsBusy)) OnPropertyChanged(nameof(CanGenerate));
+        };
     }
 
     public event Action<bool?>? RequestClose;
@@ -21,6 +27,11 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     [ObservableProperty] private string _groomingRecordId = string.Empty;
     [ObservableProperty] private string _caption = string.Empty;
     [ObservableProperty] private string? _generatedPath;
+    [ObservableProperty] private ShopSignatureProfile? _selectedSignature;
+
+    public ObservableCollection<ShopSignatureProfile> AvailableSignatures { get; } = new();
+    private bool _loadingSignatures;
+    private byte[]? _previewShopSignaturePng;
 
     /// <summary>對話框開啟時產出的預覽 PDF 路徑（temp dir）。Commit 時會刪除。</summary>
     [ObservableProperty] private string? _previewPath;
@@ -28,7 +39,13 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     /// <summary>WebView2 用的 file:// URI（綁定到 View 上的 WebView2.Source）。</summary>
     public Uri? PreviewUri => PreviewPath is null ? null : new Uri(PreviewPath);
 
-    partial void OnPreviewPathChanged(string? value) => OnPropertyChanged(nameof(PreviewUri));
+    public bool CanGenerate => !IsBusy && PreviewUri is not null;
+
+    partial void OnPreviewPathChanged(string? value)
+    {
+        OnPropertyChanged(nameof(PreviewUri));
+        OnPropertyChanged(nameof(CanGenerate));
+    }
 
     /// <summary>
     /// R2: 簽名板已從 UI 移除，此屬性設為 null 代表「不需簽名直接產生 PDF」。
@@ -36,12 +53,62 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     /// </summary>
     public Func<byte[]?>? CaptureOwnerSignature { get; set; }
 
-    /// <summary>對話框開啟時呼叫，產出預覽 PDF 並讓 View WebView2 載入。</summary>
+    partial void OnSelectedSignatureChanged(ShopSignatureProfile? value)
+    {
+        if (!_loadingSignatures)
+            _ = RunAsync(RegeneratePreviewAsync);
+    }
+
+    /// <summary>對話框開啟時載入預設簽名，產出預覽 PDF 並讓 View WebView2 載入。</summary>
     public Task LoadPreviewAsync() => RunAsync(async () =>
     {
-        var output = await WithScopeAsync(sp => sp.GetRequiredService<ContractService>().PreviewAsync(GroomingRecordId));
-        PreviewPath = output.AbsolutePath;
+        var profiles = await WithScopeAsync(sp => sp.GetRequiredService<ShopSignatureService>().ListAsync());
+        _loadingSignatures = true;
+        try
+        {
+            AvailableSignatures.Clear();
+            foreach (var profile in profiles.OrderByDescending(x => x.IsDefault).ThenBy(x => x.Name))
+                AvailableSignatures.Add(profile);
+            SelectedSignature = AvailableSignatures.FirstOrDefault(x => x.IsDefault)
+                ?? AvailableSignatures.FirstOrDefault();
+        }
+        finally
+        {
+            _loadingSignatures = false;
+        }
+        await RegeneratePreviewAsync();
     });
+
+    [RelayCommand]
+    private void ClearSignature() => SelectedSignature = null;
+
+    private async Task RegeneratePreviewAsync()
+    {
+        var signaturePng = await ReadSelectedSignatureAsync(showWarning: true);
+        var output = await WithScopeAsync(sp => sp.GetRequiredService<ContractService>()
+            .PreviewAsync(GroomingRecordId, signaturePng));
+        var oldPreview = PreviewPath;
+        _previewShopSignaturePng = signaturePng;
+        PreviewPath = output.AbsolutePath;
+        DeletePreview(oldPreview);
+    }
+
+    private async Task<byte[]?> ReadSelectedSignatureAsync(bool showWarning)
+    {
+        if (SelectedSignature is null) return null;
+        try
+        {
+            return await WithScopeAsync(sp => sp.GetRequiredService<ShopSignatureService>()
+                .ReadPngAsync(SelectedSignature.SignatureId));
+        }
+        catch (PetSalon.Core.Common.AppException ex)
+            when (ex.Code is "SIGNATURE_NOT_FOUND" or "SIGNATURE_UNAVAILABLE" or "INVALID_SIGNATURE_IMAGE")
+        {
+            if (showWarning)
+                _dialog.Warning("簽名無法使用", $"{ex.Message}\n本次仍可產生 PDF，店家簽名處將留白。");
+            return null;
+        }
+    }
 
     [RelayCommand]
     private Task Generate() => RunAsync(async () =>
@@ -56,11 +123,15 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
                 throw PetSalon.Core.Common.AppException.Unprocessable("MISSING_SIGNATURE", "請先完成飼主簽名");
         }
 
+        // 正式輸出沿用預覽時已讀取的同一份 bytes，避免檔案在確認期間變動而導致結果不同。
+        var shopSignaturePng = _previewShopSignaturePng;
+
         ContractGenerateResult result;
         if (sig is null && !string.IsNullOrEmpty(PreviewPath))
         {
             // 新流程：用 CommitPreviewAsync（重新產 PDF 到正式目錄並刪 preview）
-            result = await WithScopeAsync(sp => sp.GetRequiredService<ContractService>().CommitPreviewAsync(GroomingRecordId, PreviewPath));
+            result = await WithScopeAsync(sp => sp.GetRequiredService<ContractService>()
+                .CommitPreviewAsync(GroomingRecordId, PreviewPath, shopSignaturePng));
         }
         else
         {
@@ -69,6 +140,7 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
             {
                 GroomingRecordId = GroomingRecordId,
                 OwnerSignaturePng = sig,
+                ShopSignaturePng = shopSignaturePng,
             }));
         }
         GeneratedPath = result.AbsolutePath;
@@ -79,10 +151,13 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     [RelayCommand]
     private void Cancel()
     {
-        if (!string.IsNullOrEmpty(PreviewPath))
-        {
-            try { if (System.IO.File.Exists(PreviewPath)) System.IO.File.Delete(PreviewPath); } catch { }
-        }
+        DeletePreview(PreviewPath);
         RequestClose?.Invoke(false);
+    }
+
+    private static void DeletePreview(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return;
+        try { if (File.Exists(path)) File.Delete(path); } catch { }
     }
 }

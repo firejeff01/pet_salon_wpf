@@ -7,6 +7,7 @@
     <cv:NotNullToBoolConverter x:Key="NotNullToBoolConverter" />
     <cv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <cv:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" Invert="True" />
+    <cv:InverseBoolConverter x:Key="InverseBoolConverter" />
     <cv:DateOnlyToDateTimeConverter x:Key="DateOnlyToDateTimeConverter" />
     <cv:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
 </ResourceDictionary>

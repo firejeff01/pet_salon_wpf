@@ -73,9 +73,16 @@
                 <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16">
                     <StackPanel>
                         <DockPanel Margin="0,0,0,16">
-                            <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButtonStyle}"
-                                    AutomationProperties.AutomationId="btn-save-owner"
-                                    Content="💾 儲存" Command="{Binding SaveCommand}" />
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Style="{StaticResource DangerButtonStyle}"
+                                        AutomationProperties.AutomationId="btn-delete-owner"
+                                        Content="🗑 刪除飼主" Command="{Binding DeleteOwnerCommand}"
+                                        IsEnabled="{Binding SelectedOwner, Converter={StaticResource NotNullToBoolConverter}}"
+                                        Margin="0,0,8,0" />
+                                <Button Style="{StaticResource PrimaryButtonStyle}"
+                                        AutomationProperties.AutomationId="btn-save-owner"
+                                        Content="💾 儲存" Command="{Binding SaveCommand}" />
+                            </StackPanel>
                             <TextBlock FontWeight="Bold" FontSize="18" Foreground="{StaticResource Brown700Brush}"
                                        Text="飼主資料" VerticalAlignment="Center" />
                         </DockPanel>
@@ -84,6 +91,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
@@ -121,6 +129,12 @@
                                 <CheckBox Content="儲值客戶" IsChecked="{Binding Form.IsStoredValueCustomer}" VerticalAlignment="Center" />
                                 <TextBlock Text="餘額：" Style="{StaticResource FieldLabelStyle}" Margin="16,0,4,0" VerticalAlignment="Center" />
                                 <TextBox Width="100" Text="{Binding Form.StoredValueBalance, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,12,0,0">
+                                <TextBlock Text="飼主備註" Style="{StaticResource FieldLabelStyle}" />
+                                <TextBox AutomationProperties.AutomationId="txt-owner-note"
+                                         Text="{Binding Form.Note, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="1000" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
                             </StackPanel>
                         </Grid>
 

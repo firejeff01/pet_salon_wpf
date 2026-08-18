@@ -31,6 +31,7 @@ public partial class MainViewModel : ViewModelBase
             new("calendar", "預約日曆"),
             new("customer", "客戶填寫"),
             new("backup", "備份管理"),
+            new("signatures", "簽名設定"),
         };
         _ = CheckForUpdateAsync();
     }
@@ -80,6 +81,7 @@ public partial class MainViewModel : ViewModelBase
             case "calendar": _nav.NavigateTo<CalendarViewModel>(); break;
             case "customer": _nav.NavigateTo<CustomerFormViewModel>(); break;
             case "backup": _nav.NavigateTo<BackupPageViewModel>(); break;
+            case "signatures": _nav.NavigateTo<SignatureSettingsViewModel>(); break;
         }
     }
 
@@ -100,6 +102,7 @@ public partial class MainViewModel : ViewModelBase
             CalendarViewModel or DailyAppointmentsViewModel or AppointmentEditViewModel or GroomingPageViewModel => "calendar",
             CustomerFormViewModel => "customer",
             BackupPageViewModel => "backup",
+            SignatureSettingsViewModel => "signatures",
             _ => null,
         };
         foreach (var m in MenuItems) m.IsActive = m.Key == key;
@@ -116,6 +119,7 @@ public partial class MainViewModel : ViewModelBase
         GroomingPageViewModel => "美容紀錄",
         CustomerFormViewModel => "客戶填寫",
         BackupPageViewModel => "備份管理",
+        SignatureSettingsViewModel => "店家簽名設定",
         _ => string.Empty,
     };
 }

@@ -10,7 +10,8 @@ public sealed record ContractRenderData(
     byte[]? OwnerSignaturePng,
     string HospitalName,
     string HospitalPhone,
-    string HospitalAddress);
+    string HospitalAddress,
+    byte[]? ShopSignaturePng = null);
 
 public sealed record ContractGenerateOutput(string AbsolutePath, int Version);
 

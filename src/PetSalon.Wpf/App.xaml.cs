@@ -34,17 +34,20 @@ public partial class App : Application
         var contractsDir = Path.Combine(appData, "contracts");
         var backupDir = Path.Combine(appData, "backups");
         var chromiumDir = Path.Combine(appData, "chromium");
+        var signaturesDir = Path.Combine(appData, "signatures");
         Directory.CreateDirectory(contractsDir);
         Directory.CreateDirectory(backupDir);
         Directory.CreateDirectory(chromiumDir);
+        Directory.CreateDirectory(signaturesDir);
 
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((_, services) =>
             {
-                services.AddPetSalonInfrastructure($"Data Source={dbPath}", contractsDir, backupDir, dbPath, chromiumDir);
+                services.AddPetSalonInfrastructure($"Data Source={dbPath}", contractsDir, backupDir, dbPath, chromiumDir, signaturesDir);
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<UpdateChecker>();
+                services.AddSingleton<SignatureImageProcessor>();
                 services.AddSingleton<MainViewModel>();
                 services.AddTransient<HomeViewModel>();
                 services.AddTransient<OwnerPageViewModel>();
@@ -55,6 +58,7 @@ public partial class App : Application
                 services.AddTransient<GroomingPageViewModel>();
                 services.AddTransient<CustomerFormViewModel>();
                 services.AddTransient<BackupPageViewModel>();
+                services.AddTransient<SignatureSettingsViewModel>();
                 services.AddTransient<ContractGenerateDialogViewModel>();
             })
             .Build();

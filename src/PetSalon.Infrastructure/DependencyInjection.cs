@@ -6,6 +6,7 @@ using PetSalon.Infrastructure.Identity;
 using PetSalon.Infrastructure.Os;
 using PetSalon.Infrastructure.Pdf;
 using PetSalon.Infrastructure.Persistence;
+using PetSalon.Infrastructure.Signatures;
 
 namespace PetSalon.Infrastructure;
 
@@ -17,7 +18,8 @@ public static class DependencyInjection
         string contractOutputDir,
         string backupDir,
         string dbFilePath,
-        string? chromiumCacheDir = null)
+        string? chromiumCacheDir = null,
+        string? signaturesDir = null)
     {
         services.AddDbContext<PetSalonDbContext>(opt => opt.UseSqlite(sqliteConnectionString));
         services.AddScoped<IPetSalonDbContext>(sp => sp.GetRequiredService<PetSalonDbContext>());
@@ -33,16 +35,22 @@ public static class DependencyInjection
         services.AddSingleton<IPdfGenerator>(_ => new PuppeteerSharpContractGenerator(templatePath, fontPath, chromiumDir));
 
         services.AddSingleton(new ContractOutputOptions { OutputDir = contractOutputDir });
+        var resolvedSignaturesDir = signaturesDir ?? Path.Combine(Path.GetDirectoryName(dbFilePath)!, "signatures");
+        services.AddSingleton(new ShopSignatureOptions { RootDir = resolvedSignaturesDir });
+        services.AddSingleton<IShopSignatureStore, FileShopSignatureStore>();
+        services.AddSingleton<ShopSignatureService>();
         services.AddSingleton(new BackupOptions
         {
             BackupDir = backupDir,
             DbFilePath = dbFilePath,
             ContractsDir = contractOutputDir,
+            SignaturesDir = resolvedSignaturesDir,
         });
 
         services.AddSingleton<StoredValueService>();
         services.AddScoped<OwnerService>();
         services.AddScoped<PetService>();
+        services.AddScoped<CustomerRegistrationService>();
         services.AddScoped<AppointmentService>();
         services.AddScoped<GroomingRecordService>();
         services.AddScoped<ContractService>();

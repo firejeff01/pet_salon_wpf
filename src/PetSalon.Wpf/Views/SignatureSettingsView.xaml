@@ -1,0 +1,87 @@
+<UserControl x:Class="PetSalon.Wpf.Views.SignatureSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PetSalon.Wpf.ViewModels"
+             xmlns:ctrl="clr-namespace:PetSalon.Wpf.Controls"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:SignatureSettingsViewModel}">
+    <StackPanel>
+        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,14">
+            <StackPanel>
+                <TextBlock Text="✍ 店家簽名設定" FontWeight="Bold" FontSize="22"
+                           Foreground="{StaticResource Brown700Brush}" />
+                <TextBlock Text="可保存多組簽名。預設簽名會在契約預覽中自動選取，仍可於產生 PDF 前切換。"
+                           Foreground="{StaticResource Brown500Brush}" Margin="0,5,0,0" />
+            </StackPanel>
+        </Border>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="新增簽名" FontWeight="Bold" FontSize="16"
+                                   Foreground="{StaticResource Brown700Brush}" Margin="0,0,0,10" />
+                        <TextBlock Text="簽名名稱" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox AutomationProperties.AutomationId="txt-signature-name"
+                                 Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" MaxLength="80" />
+                        <CheckBox Content="設為預設簽名" IsChecked="{Binding MakeNewDefault}" Margin="0,10,0,10" />
+                        <ctrl:SignaturePad x:Name="SignaturePad" Height="180" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                            <Button Style="{StaticResource SecondaryButtonStyle}" Content="匯入 PNG／JPEG"
+                                    AutomationProperties.AutomationId="btn-import-signature"
+                                    Click="OnImportSignature" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource PrimaryButtonStyle}" Content="保存手寫簽名"
+                                    AutomationProperties.AutomationId="btn-save-signature"
+                                    Command="{Binding SaveHandwrittenCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" Margin="0,0,0,10"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource NotNullToVisibilityConverter}}" />
+            </StackPanel>
+
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="8,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="已保存簽名" FontWeight="Bold" FontSize="16"
+                               Foreground="{StaticResource Brown700Brush}" Margin="0,0,0,10" />
+                    <ListBox AutomationProperties.AutomationId="list-shop-signatures"
+                             ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                             MinHeight="130">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="4">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="（預設）" Foreground="{StaticResource Pink600Brush}" Margin="6,0,0,0"
+                                               Visibility="{Binding IsDefault, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Border Height="150" Background="White" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="8" Margin="0,12,0,12" Padding="8">
+                        <Image Source="{Binding SelectedPreview}" Stretch="Uniform" />
+                    </Border>
+
+                    <TextBlock Text="顯示名稱" Style="{StaticResource FieldLabelStyle}" />
+                    <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}" MaxLength="80" />
+                    <WrapPanel HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Content="重新命名"
+                                Command="{Binding RenameCommand}" Margin="0,0,8,8" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Content="設為預設"
+                                Command="{Binding SetDefaultCommand}" Margin="0,0,8,8" />
+                        <Button Style="{StaticResource DangerButtonStyle}" Content="刪除"
+                                Command="{Binding DeleteCommand}" Margin="0,0,0,8" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </StackPanel>
+</UserControl>

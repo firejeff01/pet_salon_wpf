@@ -71,7 +71,7 @@ public sealed class PetService
         return pet;
     }
 
-    private static void Validate(PetInput input)
+    internal static void Validate(PetInput input)
     {
         if (string.IsNullOrWhiteSpace(input.Name)) throw AppException.Validation("寵物名稱為必填");
         if (!PetSpecies.All.Contains(input.Species)) throw AppException.Validation("物種須為犬或貓");
@@ -88,7 +88,7 @@ public sealed class PetService
                 throw AppException.Validation($"病史「{m}」不在允許清單中");
     }
 
-    private static void Apply(Pet pet, PetInput input)
+    internal static void Apply(Pet pet, PetInput input)
     {
         pet.Name = input.Name.Trim();
         pet.Species = input.Species;

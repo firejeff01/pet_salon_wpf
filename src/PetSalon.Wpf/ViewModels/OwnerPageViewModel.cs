@@ -86,6 +86,35 @@ public partial class OwnerPageViewModel : ViewModelBase
     });
 
     [RelayCommand]
+    private Task DeleteOwner() => RunAsync(async () =>
+    {
+        if (SelectedOwner is null) return;
+        var ownerId = SelectedOwner.OwnerId;
+        var ownerName = SelectedOwner.Name;
+        if (!_dialog.Confirm(
+                "刪除飼主",
+                $"確定刪除飼主「{ownerName}」及其 {OwnerPets.Count} 隻寵物嗎？此動作無法復原。"))
+            return;
+
+        try
+        {
+            await WithScopeAsync(sp => sp.GetRequiredService<OwnerService>().DeleteAsync(ownerId));
+        }
+        catch (PetSalon.Core.Common.AppException ex) when (ex.Code == "OWNER_HAS_HISTORY")
+        {
+            _dialog.Error("無法刪除", "該飼主已有預約或美容紀錄，無法永久刪除。");
+            return;
+        }
+
+        SelectedOwner = null;
+        IsCreating = false;
+        Form.Reset();
+        OwnerPets.Clear();
+        await RefreshAsync();
+        _dialog.Success("已刪除", $"飼主「{ownerName}」及其寵物資料已刪除");
+    });
+
+    [RelayCommand]
     private void AddPet()
     {
         if (SelectedOwner is null) { _dialog.Error("尚未選取", "請先選取或建立飼主"); return; }

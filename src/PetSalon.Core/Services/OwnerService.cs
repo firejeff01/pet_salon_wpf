@@ -85,7 +85,25 @@ public sealed class OwnerService
         return owner;
     }
 
-    private static void Validate(OwnerInput input)
+    public async Task DeleteAsync(string id, CancellationToken ct = default)
+    {
+        var owner = await _db.Owners.FirstOrDefaultAsync(o => o.OwnerId == id, ct)
+            ?? throw AppException.NotFound("OWNER_NOT_FOUND", $"飼主 {id} 不存在");
+        var pets = await _db.Pets.Where(p => p.OwnerId == id).ToListAsync(ct);
+        var petIds = pets.Select(p => p.PetId).ToList();
+        var hasHistory = await _db.Appointments.AnyAsync(
+            a => a.OwnerId == id || petIds.Contains(a.PetId), ct);
+        if (hasHistory)
+            throw AppException.Unprocessable(
+                "OWNER_HAS_HISTORY",
+                "該飼主已有預約或美容紀錄，無法永久刪除");
+
+        _db.Pets.RemoveRange(pets);
+        _db.Owners.Remove(owner);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    internal static void Validate(OwnerInput input)
     {
         if (string.IsNullOrWhiteSpace(input.Name)) throw AppException.Validation("姓名為必填");
         if (string.IsNullOrWhiteSpace(input.NationalId)) throw AppException.Validation("身分證字號為必填");
@@ -95,7 +113,7 @@ public sealed class OwnerService
         if (input.StoredValueBalance < 0) throw AppException.Validation("儲值餘額不可為負數");
     }
 
-    private static void Apply(Owner owner, OwnerInput input)
+    internal static void Apply(Owner owner, OwnerInput input)
     {
         owner.Name = input.Name.Trim();
         owner.NationalId = input.NationalId.Trim();

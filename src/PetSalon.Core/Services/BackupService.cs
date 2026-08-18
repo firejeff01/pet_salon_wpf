@@ -68,9 +68,18 @@ public sealed class BackupService
             }
         }
 
+        if (Directory.Exists(_options.SignaturesDir))
+        {
+            foreach (var file in Directory.GetFiles(_options.SignaturesDir, "*", SearchOption.AllDirectories))
+            {
+                ct.ThrowIfCancellationRequested();
+                var rel = Path.GetRelativePath(_options.SignaturesDir, file).Replace('\\', '/');
+                archive.CreateEntryFromFile(file, $"signatures/{rel}");
+            }
+        }
+
         var fi = new FileInfo(fullPath);
         return new BackupFileInfo(fi.Name, fi.FullName, fi.LastWriteTime, fi.Length);
-        _ = ct;
     }
 
     public async Task RestoreAsync(string zipPath, CancellationToken ct = default)
@@ -96,11 +105,30 @@ public sealed class BackupService
             else if (entry.FullName.StartsWith("contracts/", StringComparison.OrdinalIgnoreCase))
             {
                 var rel = entry.FullName.Substring("contracts/".Length).Replace('/', Path.DirectorySeparatorChar);
-                var dest = Path.Combine(_options.ContractsDir, rel);
+                var dest = ResolveWithin(_options.ContractsDir, rel);
+                Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                entry.ExtractToFile(dest, overwrite: true);
+            }
+            else if (entry.FullName.StartsWith("signatures/", StringComparison.OrdinalIgnoreCase))
+            {
+                var rel = entry.FullName.Substring("signatures/".Length).Replace('/', Path.DirectorySeparatorChar);
+                var dest = ResolveWithin(_options.SignaturesDir, rel);
                 Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                 entry.ExtractToFile(dest, overwrite: true);
             }
         }
+    }
+
+    private static string ResolveWithin(string root, string relativePath)
+    {
+        var fullRoot = Path.GetFullPath(root);
+        var prefix = fullRoot.EndsWith(Path.DirectorySeparatorChar)
+            ? fullRoot
+            : fullRoot + Path.DirectorySeparatorChar;
+        var resolved = Path.GetFullPath(Path.Combine(fullRoot, relativePath));
+        if (!resolved.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            throw AppException.Unprocessable("INVALID_PATH", "備份內容含有不合法的檔案路徑");
+        return resolved;
     }
 
     public void Delete(string zipPath)
@@ -108,7 +136,10 @@ public sealed class BackupService
         if (!File.Exists(zipPath)) return;
         var resolved = Path.GetFullPath(zipPath);
         var dir = Path.GetFullPath(_options.BackupDir);
-        if (!resolved.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
+        var prefix = dir.EndsWith(Path.DirectorySeparatorChar)
+            ? dir
+            : dir + Path.DirectorySeparatorChar;
+        if (!resolved.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             throw AppException.Unprocessable("INVALID_PATH", "備份檔案路徑不合法");
         File.Delete(resolved);
     }
@@ -119,4 +150,5 @@ public sealed class BackupOptions
     public string BackupDir { get; init; } = "backups";
     public string DbFilePath { get; init; } = "petsalon.db";
     public string ContractsDir { get; init; } = "contracts";
+    public string SignaturesDir { get; init; } = "signatures";
 }

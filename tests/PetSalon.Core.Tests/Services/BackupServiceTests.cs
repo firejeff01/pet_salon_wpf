@@ -13,6 +13,7 @@ public class BackupServiceTests : IDisposable
     private readonly string _dbFile;
     private readonly string _backupDir;
     private readonly string _contractsDir;
+    private readonly string _signaturesDir;
     private readonly BackupService _svc;
     private readonly FakeClock _clock = new();
 
@@ -22,6 +23,7 @@ public class BackupServiceTests : IDisposable
         _dbFile = Path.Combine(_root, "petsalon.db");
         _backupDir = Path.Combine(_root, "backups");
         _contractsDir = Path.Combine(_root, "contracts");
+        _signaturesDir = Path.Combine(_root, "signatures");
         Directory.CreateDirectory(_root);
         Directory.CreateDirectory(_contractsDir);
 
@@ -32,6 +34,7 @@ public class BackupServiceTests : IDisposable
             BackupDir = _backupDir,
             DbFilePath = _dbFile,
             ContractsDir = _contractsDir,
+            SignaturesDir = _signaturesDir,
         };
         // BackupService 接 IPetSalonDbContext 但測試完全不碰 EF：給個 dummy。
         _svc = new BackupService(new DummyDbContext(), _clock, options);
@@ -90,6 +93,21 @@ public class BackupServiceTests : IDisposable
         var info = await _svc.CreateAsync();
         using var zip = ZipFile.OpenRead(info.AbsolutePath);
         zip.Entries.Should().Contain(e => e.FullName == "contracts/20260601/test.pdf");
+    }
+
+    [Fact]
+    public async Task Create_and_restore_include_signature_profiles_and_images()
+    {
+        Directory.CreateDirectory(_signaturesDir);
+        File.WriteAllText(Path.Combine(_signaturesDir, "profiles.json"), "[]");
+        File.WriteAllBytes(Path.Combine(_signaturesDir, "sig_1.png"), new byte[] { 1, 2, 3 });
+
+        var info = await _svc.CreateAsync();
+        Directory.Delete(_signaturesDir, recursive: true);
+        await _svc.RestoreAsync(info.AbsolutePath);
+
+        File.Exists(Path.Combine(_signaturesDir, "profiles.json")).Should().BeTrue();
+        File.ReadAllBytes(Path.Combine(_signaturesDir, "sig_1.png")).Should().Equal(1, 2, 3);
     }
 
     [Fact]
