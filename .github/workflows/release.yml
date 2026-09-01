@@ -68,11 +68,26 @@ jobs:
         shell: pwsh
         run: ./tools/build-installer.ps1
 
+      # App 內建的自動更新會先比對雜湊才執行 MSI，缺少 sidecar 就只會退回手動下載
+      - name: Compute SHA256 sidecar
+        id: hash
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem 'out/PetSalon-Setup-v*.msi' | Select-Object -First 1
+          if (-not $msi) { throw 'MSI not found' }
+          $sha = (Get-FileHash $msi.FullName -Algorithm SHA256).Hash.ToLower()
+          # 格式對齊 sha256sum：<hash>  <filename>
+          "$sha  $($msi.Name)" | Out-File -FilePath "$($msi.FullName).sha256" -Encoding ascii -NoNewline
+          "sha256=$sha" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
+          Write-Host "SHA256: $sha"
+
       - name: Upload MSI as artifact
         uses: actions/upload-artifact@v4
         with:
           name: PetSalon-Setup-v${{ steps.ver.outputs.version }}
-          path: out/PetSalon-Setup-v*.msi
+          path: |
+            out/PetSalon-Setup-v*.msi
+            out/PetSalon-Setup-v*.msi.sha256
           if-no-files-found: error
 
       # build 成功後才把 bump 結果寫回 repo + 打 tag
@@ -97,10 +112,32 @@ jobs:
           name: 貳寶寵物美容工坊 v${{ steps.ver.outputs.version }}
           body: |
             ## 安裝
-            下載下方 `PetSalon-Setup-v${{ steps.ver.outputs.version }}.msi` 點兩下執行即可。
+
+            1. 下載下方的 `PetSalon-Setup-v${{ steps.ver.outputs.version }}.msi`
+            2. 在下載好的檔案上按右鍵 →「內容」→ 勾選最下方的「解除封鎖」→ 確定
+            3. 點兩下安裝
+
+            ※ 若略過步驟 2，會出現「Windows 已保護您的電腦」提示，
+            點「其他資訊」→「仍要執行」即可，屬正常現象。
+
+            已安裝舊版的話不必手動下載 —— 開啟程式後點上方橫幅的「立即更新」，
+            程式會自行下載、驗證並安裝，不會出現上述提示。
+
             - Per-user 安裝（不需管理員權限）
             - 升級舊版會保留所有資料
             - 首次「產生 PDF」需網路下載 Chromium (~170 MB)
-          files: out/PetSalon-Setup-v*.msi
+
+            ## 檔案校驗
+
+            `PetSalon-Setup-v${{ steps.ver.outputs.version }}.msi` 的 SHA256：
+
+            ```
+            ${{ steps.hash.outputs.sha256 }}
+            ```
+
+            PowerShell 驗證：`Get-FileHash .\PetSalon-Setup-v${{ steps.ver.outputs.version }}.msi -Algorithm SHA256`
+          files: |
+            out/PetSalon-Setup-v*.msi
+            out/PetSalon-Setup-v*.msi.sha256
           draft: false
           prerelease: false

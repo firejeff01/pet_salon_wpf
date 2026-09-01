@@ -31,9 +31,12 @@
                             Width="28" Height="28" FontSize="14" Cursor="Hand"
                             Foreground="{StaticResource Brown700Brush}"
                             ToolTip="關閉提示"
+                            IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBoolConverter}}"
                             Command="{Binding DismissUpdateCommand}" />
                     <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButtonStyle}"
-                            Content="下載新版" Padding="14,4" FontSize="12" Margin="0,0,8,0"
+                            Content="{Binding UpdateActionText}" Padding="14,4" FontSize="12" Margin="0,0,8,0"
+                            AutomationProperties.AutomationId="btn-update-now"
+                            IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBoolConverter}}"
                             Command="{Binding OpenUpdateCommand}" />
                     <TextBlock Text="{Binding UpdateBannerText}" VerticalAlignment="Center"
                                Foreground="{StaticResource Brown700Brush}" FontWeight="SemiBold" />

@@ -10,11 +10,20 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly INavigationService _nav;
     private readonly UpdateChecker _updater;
+    private readonly UpdateInstaller _updateInstaller;
+    private readonly IDialogService _dialog;
+    private UpdateInfo? _pendingUpdate;
 
-    public MainViewModel(INavigationService nav, UpdateChecker updater)
+    public MainViewModel(
+        INavigationService nav,
+        UpdateChecker updater,
+        UpdateInstaller updateInstaller,
+        IDialogService dialog)
     {
         _nav = nav;
         _updater = updater;
+        _updateInstaller = updateInstaller;
+        _dialog = dialog;
         AppVersion = UpdateChecker.CurrentVersion().ToString(3);
         WindowTitle = $"貳寶寵物美容工坊 v{AppVersion} — 犬貓美容定型化契約系統";
         _nav.CurrentViewModelChanged += vm =>
@@ -42,6 +51,10 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private bool _isUpdateAvailable;
     [ObservableProperty] private string _updateBannerText = string.Empty;
     [ObservableProperty] private string _updateDownloadUrl = string.Empty;
+    [ObservableProperty] private bool _isUpdating;
+
+    /// <summary>可自動安裝時按鈕寫「立即更新」，否則退回舊行為的「下載新版」。</summary>
+    public string UpdateActionText => _pendingUpdate?.CanAutoInstall == true ? "立即更新" : "下載新版";
 
     private async Task CheckForUpdateAsync()
     {
@@ -50,14 +63,55 @@ public partial class MainViewModel : ViewModelBase
         // 一定要回 UI thread 寫 ObservableProperty
         await App.Current.Dispatcher.InvokeAsync(() =>
         {
-            UpdateBannerText = $"🎉 有新版 v{info.Latest} 可用（目前 v{AppVersion}），點此下載";
-            UpdateDownloadUrl = info.DownloadUrl;
+            _pendingUpdate = info;
+            UpdateBannerText = info.CanAutoInstall
+                ? $"🎉 有新版 v{info.Latest} 可用（目前 v{AppVersion}），點「立即更新」自動安裝"
+                : $"🎉 有新版 v{info.Latest} 可用（目前 v{AppVersion}），點此下載";
+            UpdateDownloadUrl = info.ReleasePageUrl;
+            OnPropertyChanged(nameof(UpdateActionText));
             IsUpdateAvailable = true;
         });
     }
 
     [RelayCommand]
-    private void OpenUpdate()
+    private async Task OpenUpdate()
+    {
+        var info = _pendingUpdate;
+        // 沒有 MSI 或校驗檔就不冒險自動執行，直接開 release 頁讓使用者手動處理
+        if (info is null || !info.CanAutoInstall)
+        {
+            OpenReleasePage();
+            return;
+        }
+
+        if (IsUpdating) return;
+        IsUpdating = true;
+        var original = UpdateBannerText;
+        try
+        {
+            var progress = new Progress<double>(p =>
+                UpdateBannerText = $"⬇ 正在下載 v{info.Latest}⋯⋯ {p:P0}");
+            UpdateBannerText = $"⬇ 正在下載 v{info.Latest}⋯⋯";
+
+            var msiPath = await _updateInstaller.DownloadVerifiedAsync(info, progress);
+
+            UpdateBannerText = "✅ 下載完成，即將關閉程式並開始安裝⋯⋯";
+            _updateInstaller.Launch(msiPath);
+            // 必須讓出檔案佔用，否則 MSI 升級會卡在「使用中的檔案」
+            App.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            IsUpdating = false;
+            UpdateBannerText = original;
+            _dialog.Warning(
+                "自動更新未完成",
+                $"{ex.Message}\n\n將為你開啟下載頁面，可改用手動安裝。");
+            OpenReleasePage();
+        }
+    }
+
+    private void OpenReleasePage()
     {
         if (string.IsNullOrWhiteSpace(UpdateDownloadUrl)) return;
         try { Process.Start(new ProcessStartInfo(UpdateDownloadUrl) { UseShellExecute = true }); } catch { }

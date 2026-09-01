@@ -47,6 +47,7 @@ public partial class App : Application
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<UpdateChecker>();
+                services.AddSingleton<UpdateInstaller>();
                 services.AddSingleton<SignatureImageProcessor>();
                 services.AddSingleton<MainViewModel>();
                 services.AddTransient<HomeViewModel>();

@@ -13,6 +13,9 @@
   <ItemGroup>
     <Resource Include="Assets\app.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PetSalon.Wpf.Tests" />
+  </ItemGroup>
   <!-- 單檔發佈：dotnet publish src\PetSalon.Wpf -c Release -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PublishSingleFile>true</PublishSingleFile>
