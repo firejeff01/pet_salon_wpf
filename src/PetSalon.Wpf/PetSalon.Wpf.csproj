@@ -5,9 +5,9 @@
     <RootNamespace>PetSalon.Wpf</RootNamespace>
     <UseWPF>true</UseWPF>
     <AssemblyTitle>貳寶寵物美容工坊</AssemblyTitle>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
-    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <FileVersion>1.0.6.0</FileVersion>
+    <Version>1.0.6</Version>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
