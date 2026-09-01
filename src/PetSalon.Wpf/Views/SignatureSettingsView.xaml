@@ -11,7 +11,8 @@
             <StackPanel>
                 <TextBlock Text="✍ 店家簽名設定" FontWeight="Bold" FontSize="22"
                            Foreground="{StaticResource Brown700Brush}" />
-                <TextBlock Text="可保存多組簽名。預設簽名會在契約預覽中自動選取，仍可於產生 PDF 前切換。"
+                <TextBlock Text="簽名分為「美容人員」與「負責人」兩種角色，各自可保存多組並各有一組預設。契約 PDF 的「美容人員簽名」欄帶入美容人員簽名，「乙方簽章」欄帶入負責人簽名。"
+                           TextWrapping="Wrap"
                            Foreground="{StaticResource Brown500Brush}" Margin="0,5,0,0" />
             </StackPanel>
         </Border>
@@ -30,7 +31,11 @@
                         <TextBlock Text="簽名名稱" Style="{StaticResource FieldLabelStyle}" />
                         <TextBox AutomationProperties.AutomationId="txt-signature-name"
                                  Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" MaxLength="80" />
-                        <CheckBox Content="設為預設簽名" IsChecked="{Binding MakeNewDefault}" Margin="0,10,0,10" />
+                        <TextBlock Text="簽名角色" Style="{StaticResource FieldLabelStyle}" Margin="0,10,0,0" />
+                        <ComboBox AutomationProperties.AutomationId="cmb-signature-role"
+                                  ItemsSource="{Binding Source={x:Static vm:SignatureSettingsViewModel.RoleOptions}}"
+                                  SelectedItem="{Binding NewRole}" DisplayMemberPath="Label" MinHeight="32" />
+                        <CheckBox Content="設為該角色的預設簽名" IsChecked="{Binding MakeNewDefault}" Margin="0,10,0,10" />
                         <ctrl:SignaturePad x:Name="SignaturePad" Height="180" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                             <Button Style="{StaticResource SecondaryButtonStyle}" Content="匯入 PNG／JPEG"
@@ -57,6 +62,8 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Margin="4">
+                                    <TextBlock Text="{Binding Role, Converter={StaticResource SignatureRoleLabelConverter}, StringFormat='[{0}]'}"
+                                               Foreground="{StaticResource Brown500Brush}" Margin="0,0,6,0" />
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
                                     <TextBlock Text="（預設）" Foreground="{StaticResource Pink600Brush}" Margin="6,0,0,0"
                                                Visibility="{Binding IsDefault, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -72,9 +79,14 @@
 
                     <TextBlock Text="顯示名稱" Style="{StaticResource FieldLabelStyle}" />
                     <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}" MaxLength="80" />
+                    <TextBlock Text="簽名角色" Style="{StaticResource FieldLabelStyle}" Margin="0,10,0,0" />
+                    <ComboBox AutomationProperties.AutomationId="cmb-signature-edit-role"
+                              ItemsSource="{Binding Source={x:Static vm:SignatureSettingsViewModel.RoleOptions}}"
+                              SelectedItem="{Binding EditRole}" DisplayMemberPath="Label" MinHeight="32" />
                     <WrapPanel HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Button Style="{StaticResource SecondaryButtonStyle}" Content="重新命名"
-                                Command="{Binding RenameCommand}" Margin="0,0,8,8" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Content="儲存變更"
+                                AutomationProperties.AutomationId="btn-signature-save-edits"
+                                Command="{Binding SaveEditsCommand}" Margin="0,0,8,8" />
                         <Button Style="{StaticResource SecondaryButtonStyle}" Content="設為預設"
                                 Command="{Binding SetDefaultCommand}" Margin="0,0,8,8" />
                         <Button Style="{StaticResource DangerButtonStyle}" Content="刪除"

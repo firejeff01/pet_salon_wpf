@@ -10,4 +10,5 @@
     <cv:InverseBoolConverter x:Key="InverseBoolConverter" />
     <cv:DateOnlyToDateTimeConverter x:Key="DateOnlyToDateTimeConverter" />
     <cv:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
+    <cv:SignatureRoleLabelConverter x:Key="SignatureRoleLabelConverter" />
 </ResourceDictionary>

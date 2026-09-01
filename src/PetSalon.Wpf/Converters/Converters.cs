@@ -78,3 +78,13 @@ public sealed class InverseBoolConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>SignatureRole → 中文顯示（美容人員／負責人）。</summary>
+public sealed class SignatureRoleLabelConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is PetSalon.Core.Dtos.SignatureRole role
+            ? PetSalon.Core.Dtos.SignatureRoles.ToLabel(role)
+            : string.Empty;
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}

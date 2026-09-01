@@ -11,7 +11,8 @@ public sealed record ContractRenderData(
     string HospitalName,
     string HospitalPhone,
     string HospitalAddress,
-    byte[]? ShopSignaturePng = null);
+    byte[]? GroomerSignaturePng = null,
+    byte[]? ManagerSignaturePng = null);
 
 public sealed record ContractGenerateOutput(string AbsolutePath, int Version);
 

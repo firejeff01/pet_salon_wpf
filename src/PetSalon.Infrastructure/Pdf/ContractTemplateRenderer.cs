@@ -94,8 +94,11 @@ public sealed class ContractTemplateRenderer
         var ownerSig = (data.OwnerSignaturePng is { Length: > 0 })
             ? $"data:image/png;base64,{Convert.ToBase64String(data.OwnerSignaturePng)}"
             : string.Empty;
-        var shopSig = (data.ShopSignaturePng is { Length: > 0 })
-            ? $"data:image/png;base64,{Convert.ToBase64String(data.ShopSignaturePng)}"
+        var groomerSig = (data.GroomerSignaturePng is { Length: > 0 })
+            ? $"data:image/png;base64,{Convert.ToBase64String(data.GroomerSignaturePng)}"
+            : string.Empty;
+        var managerSig = (data.ManagerSignaturePng is { Length: > 0 })
+            ? $"data:image/png;base64,{Convert.ToBase64String(data.ManagerSignaturePng)}"
             : string.Empty;
 
         var hospitalLine = string.IsNullOrWhiteSpace(data.HospitalName) || data.HospitalName == "安欣動物醫院"
@@ -236,7 +239,9 @@ public sealed class ContractTemplateRenderer
                 ? data.Owner.StoredValueBalance.ToString("0")
                 : string.Empty,
             ["fontDataUri"] = _fontDataUri.Value,
-            ["shopSignatureDataUrl"] = shopSig,
+            // 美容人員簽名欄位帶美容人員的簽名；乙方簽章欄位帶負責人的簽名。
+            ["groomerSignatureDataUrl"] = groomerSig,
+            ["managerSignatureDataUrl"] = managerSig,
         };
     }
 

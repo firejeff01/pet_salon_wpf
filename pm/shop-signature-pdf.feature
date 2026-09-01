@@ -1,5 +1,8 @@
 # language: zh-TW
 # Source: pm/spec_customer_feedback_round2.md（R6、R7）
+# NOTE: R3 起簽名分為「美容人員」與「負責人」兩種角色，
+#       本檔中「同一組店家簽名同時套用兩個欄位」與「單一預設簽名」的敘述
+#       已由 pm/shop-signature-role-split.feature 取代。
 
 Feature: 保存店家簽名並套用契約 PDF
   作為店家人員

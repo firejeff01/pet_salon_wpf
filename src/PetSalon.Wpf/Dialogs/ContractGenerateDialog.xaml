@@ -24,26 +24,47 @@
                    Text="以下為契約預覽。請確認內容無誤後再按「產生 PDF」存檔，按下後將寫入正式契約目錄並開啟。" />
 
         <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="260" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="店家簽名：" VerticalAlignment="Center" />
-            <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableSignatures}"
-                      SelectedItem="{Binding SelectedSignature}"
+
+            <!-- 美容人員簽名 → 契約第一頁「美容人員簽名」欄位 -->
+            <TextBlock Text="美容人員簽名：" VerticalAlignment="Center" />
+            <ComboBox Grid.Column="1" ItemsSource="{Binding GroomerSignatures}"
+                      SelectedItem="{Binding SelectedGroomerSignature}"
                       DisplayMemberPath="Name" MinHeight="32"
                       IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
-                      AutomationProperties.AutomationId="cmb-contract-shop-signature" />
+                      AutomationProperties.AutomationId="cmb-contract-groomer-signature" />
             <Button Grid.Column="2" Content="本次不套用" Margin="8,0,0,0"
                     Style="{StaticResource SecondaryButtonStyle}"
-                    Command="{Binding ClearSignatureCommand}"
+                    Command="{Binding ClearGroomerSignatureCommand}"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
-                    AutomationProperties.AutomationId="btn-contract-clear-signature" />
-            <TextBlock Grid.Column="3" Margin="10,0,0,0" VerticalAlignment="Center"
-                       FontSize="11" Foreground="{StaticResource Brown500Brush}"
-                       Text="預設簽名會自動選取；也可只針對本份契約切換。" />
+                    AutomationProperties.AutomationId="btn-contract-clear-groomer-signature" />
+
+            <!-- 負責人簽名 → 契約最後一頁「乙方簽章」欄位 -->
+            <TextBlock Grid.Row="1" Text="負責人簽名：" VerticalAlignment="Center" Margin="0,6,0,0" />
+            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding ManagerSignatures}"
+                      SelectedItem="{Binding SelectedManagerSignature}"
+                      DisplayMemberPath="Name" MinHeight="32" Margin="0,6,0,0"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+                      AutomationProperties.AutomationId="cmb-contract-manager-signature" />
+            <Button Grid.Row="1" Grid.Column="2" Content="本次不套用" Margin="8,6,0,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding ClearManagerSignatureCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+                    AutomationProperties.AutomationId="btn-contract-clear-manager-signature" />
+
+            <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="0,6,0,0"
+                       FontSize="11" Foreground="{StaticResource Brown500Brush}" TextWrapping="Wrap"
+                       Text="各角色的預設簽名會自動選取；也可只針對本份契約切換。美容人員簽名帶入第一頁「美容人員簽名」欄，負責人簽名帶入末頁「乙方簽章」欄。" />
         </Grid>
 
         <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6"

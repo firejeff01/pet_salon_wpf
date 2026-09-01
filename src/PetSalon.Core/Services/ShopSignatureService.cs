@@ -27,16 +27,27 @@ public sealed class ShopSignatureService
     public Task<IReadOnlyList<ShopSignatureProfile>> ListAsync(CancellationToken ct = default)
         => _store.ListAsync(ct);
 
+    /// <summary>取得指定角色的所有簽名。</summary>
+    public async Task<IReadOnlyList<ShopSignatureProfile>> ListAsync(SignatureRole role, CancellationToken ct = default)
+        => (await _store.ListAsync(ct)).Where(x => x.Role == role).ToList();
+
+    /// <summary>取得指定角色的預設簽名；該角色尚未建立任何簽名時回傳 null。</summary>
+    public async Task<ShopSignatureProfile?> GetDefaultAsync(SignatureRole role, CancellationToken ct = default)
+        => (await _store.ListAsync(ct)).FirstOrDefault(x => x.Role == role && x.IsDefault);
+
     public async Task<ShopSignatureProfile> CreateAsync(
         string name,
+        SignatureRole role,
         byte[] pngBytes,
         bool makeDefault = false,
         CancellationToken ct = default)
     {
         ValidateName(name);
+        ValidateRole(role);
         ValidatePng(pngBytes);
         var existing = await _store.ListAsync(ct);
-        var shouldMakeDefault = makeDefault || existing.Count == 0;
+        // 每個角色各自維護一組預設；該角色的第一組簽名自動成為預設。
+        var shouldMakeDefault = makeDefault || existing.All(x => x.Role != role);
         var now = _clock.Now;
         var id = _ids.New("sig");
         var profile = new ShopSignatureProfile(
@@ -45,7 +56,10 @@ public sealed class ShopSignatureService
             $"{id}.png",
             false,
             now,
-            now);
+            now)
+        {
+            Role = role,
+        };
         await _store.CreateAsync(profile, pngBytes, ct);
         if (!shouldMakeDefault) return profile;
         await SetDefaultAsync(profile.SignatureId, ct);
@@ -56,20 +70,37 @@ public sealed class ShopSignatureService
     {
         ValidateName(name);
         var profiles = (await _store.ListAsync(ct)).ToList();
-        var index = profiles.FindIndex(x => x.SignatureId == signatureId);
-        if (index < 0) throw AppException.NotFound("SIGNATURE_NOT_FOUND", "找不到店家簽名");
+        var index = IndexOf(profiles, signatureId);
         profiles[index] = profiles[index] with { Name = name.Trim(), UpdatedAt = _clock.Now };
         await _store.ReplaceProfilesAsync(profiles, ct);
+    }
+
+    /// <summary>
+    /// 變更簽名角色。原角色若因此少了預設簽名會自動遞補，
+    /// 新角色若原本沒有任何簽名則此筆自動成為該角色預設。
+    /// </summary>
+    public async Task ChangeRoleAsync(string signatureId, SignatureRole role, CancellationToken ct = default)
+    {
+        ValidateRole(role);
+        var profiles = (await _store.ListAsync(ct)).ToList();
+        var index = IndexOf(profiles, signatureId);
+        if (profiles[index].Role == role) return;
+
+        var now = _clock.Now;
+        var becomesDefault = profiles.All(x => x.Role != role);
+        profiles[index] = profiles[index] with { Role = role, IsDefault = becomesDefault, UpdatedAt = now };
+        await _store.ReplaceProfilesAsync(NormalizeDefaults(profiles, now), ct);
     }
 
     public async Task SetDefaultAsync(string signatureId, CancellationToken ct = default)
     {
         var profiles = (await _store.ListAsync(ct)).ToList();
-        if (profiles.All(x => x.SignatureId != signatureId))
-            throw AppException.NotFound("SIGNATURE_NOT_FOUND", "找不到店家簽名");
+        var role = profiles.FirstOrDefault(x => x.SignatureId == signatureId)?.Role
+            ?? throw AppException.NotFound("SIGNATURE_NOT_FOUND", "找不到店家簽名");
         var now = _clock.Now;
+        // 只影響同角色的簽名，另一角色的預設維持不變。
         var updated = profiles
-            .Select(x => x with { IsDefault = x.SignatureId == signatureId, UpdatedAt = now })
+            .Select(x => x.Role != role ? x : x with { IsDefault = x.SignatureId == signatureId, UpdatedAt = now })
             .ToList();
         await _store.ReplaceProfilesAsync(updated, ct);
     }
@@ -79,19 +110,9 @@ public sealed class ShopSignatureService
         var profiles = (await _store.ListAsync(ct)).ToList();
         var profile = profiles.FirstOrDefault(x => x.SignatureId == signatureId)
             ?? throw AppException.NotFound("SIGNATURE_NOT_FOUND", "找不到店家簽名");
-        var remaining = profiles.Where(x => x.SignatureId != signatureId).ToList();
-        if (remaining.Count > 0 && remaining.Count(x => x.IsDefault) != 1)
-        {
-            var defaultId = remaining.FirstOrDefault(x => x.IsDefault)?.SignatureId
-                ?? remaining[0].SignatureId;
-            remaining = remaining
-                .Select(x => x with
-                {
-                    IsDefault = x.SignatureId == defaultId,
-                    UpdatedAt = _clock.Now,
-                })
-                .ToList();
-        }
+        var remaining = NormalizeDefaults(
+            profiles.Where(x => x.SignatureId != signatureId).ToList(),
+            _clock.Now);
         await _store.DeleteAsync(profile, remaining, ct);
     }
 
@@ -112,10 +133,41 @@ public sealed class ShopSignatureService
         }
     }
 
+    /// <summary>確保每個角色恰有一組預設簽名（該角色仍有簽名時）。</summary>
+    private static List<ShopSignatureProfile> NormalizeDefaults(
+        List<ShopSignatureProfile> profiles,
+        DateTimeOffset now)
+    {
+        var result = profiles;
+        foreach (var group in profiles.GroupBy(x => x.Role).ToList())
+        {
+            if (group.Count(x => x.IsDefault) == 1) continue;
+            var defaultId = group.FirstOrDefault(x => x.IsDefault)?.SignatureId ?? group.First().SignatureId;
+            result = result
+                .Select(x => x.Role != group.Key
+                    ? x
+                    : x with { IsDefault = x.SignatureId == defaultId, UpdatedAt = now })
+                .ToList();
+        }
+        return result;
+    }
+
+    private static int IndexOf(List<ShopSignatureProfile> profiles, string signatureId)
+    {
+        var index = profiles.FindIndex(x => x.SignatureId == signatureId);
+        if (index < 0) throw AppException.NotFound("SIGNATURE_NOT_FOUND", "找不到店家簽名");
+        return index;
+    }
+
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) throw AppException.Validation("簽名名稱為必填");
         if (name.Trim().Length > 80) throw AppException.Validation("簽名名稱不可超過 80 字");
+    }
+
+    private static void ValidateRole(SignatureRole role)
+    {
+        if (!Enum.IsDefined(role)) throw AppException.Validation("簽名角色不正確");
     }
 
     private void ValidatePng(byte[]? bytes)

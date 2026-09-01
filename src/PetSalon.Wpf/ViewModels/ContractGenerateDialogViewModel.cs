@@ -27,11 +27,17 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     [ObservableProperty] private string _groomingRecordId = string.Empty;
     [ObservableProperty] private string _caption = string.Empty;
     [ObservableProperty] private string? _generatedPath;
-    [ObservableProperty] private ShopSignatureProfile? _selectedSignature;
 
-    public ObservableCollection<ShopSignatureProfile> AvailableSignatures { get; } = new();
+    /// <summary>套用到契約第一頁「美容人員簽名」欄位的簽名。</summary>
+    [ObservableProperty] private ShopSignatureProfile? _selectedGroomerSignature;
+
+    /// <summary>套用到契約最後一頁「乙方簽章」欄位的簽名。</summary>
+    [ObservableProperty] private ShopSignatureProfile? _selectedManagerSignature;
+
+    public ObservableCollection<ShopSignatureProfile> GroomerSignatures { get; } = new();
+    public ObservableCollection<ShopSignatureProfile> ManagerSignatures { get; } = new();
     private bool _loadingSignatures;
-    private byte[]? _previewShopSignaturePng;
+    private ContractShopSignatures _previewShopSignatures = ContractShopSignatures.None;
 
     /// <summary>對話框開啟時產出的預覽 PDF 路徑（temp dir）。Commit 時會刪除。</summary>
     [ObservableProperty] private string? _previewPath;
@@ -53,24 +59,27 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
     /// </summary>
     public Func<byte[]?>? CaptureOwnerSignature { get; set; }
 
-    partial void OnSelectedSignatureChanged(ShopSignatureProfile? value)
+    partial void OnSelectedGroomerSignatureChanged(ShopSignatureProfile? value) => OnSignatureSelectionChanged();
+
+    partial void OnSelectedManagerSignatureChanged(ShopSignatureProfile? value) => OnSignatureSelectionChanged();
+
+    private void OnSignatureSelectionChanged()
     {
         if (!_loadingSignatures)
             _ = RunAsync(RegeneratePreviewAsync);
     }
 
-    /// <summary>對話框開啟時載入預設簽名，產出預覽 PDF 並讓 View WebView2 載入。</summary>
+    /// <summary>對話框開啟時載入兩個角色的預設簽名，產出預覽 PDF 並讓 View WebView2 載入。</summary>
     public Task LoadPreviewAsync() => RunAsync(async () =>
     {
         var profiles = await WithScopeAsync(sp => sp.GetRequiredService<ShopSignatureService>().ListAsync());
         _loadingSignatures = true;
         try
         {
-            AvailableSignatures.Clear();
-            foreach (var profile in profiles.OrderByDescending(x => x.IsDefault).ThenBy(x => x.Name))
-                AvailableSignatures.Add(profile);
-            SelectedSignature = AvailableSignatures.FirstOrDefault(x => x.IsDefault)
-                ?? AvailableSignatures.FirstOrDefault();
+            Fill(GroomerSignatures, profiles, SignatureRole.Groomer);
+            Fill(ManagerSignatures, profiles, SignatureRole.Manager);
+            SelectedGroomerSignature = PickDefault(GroomerSignatures);
+            SelectedManagerSignature = PickDefault(ManagerSignatures);
         }
         finally
         {
@@ -79,33 +88,58 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
         await RegeneratePreviewAsync();
     });
 
+    private static void Fill(
+        ObservableCollection<ShopSignatureProfile> target,
+        IReadOnlyList<ShopSignatureProfile> profiles,
+        SignatureRole role)
+    {
+        target.Clear();
+        foreach (var profile in profiles
+            .Where(x => x.Role == role)
+            .OrderByDescending(x => x.IsDefault)
+            .ThenBy(x => x.Name))
+        {
+            target.Add(profile);
+        }
+    }
+
+    private static ShopSignatureProfile? PickDefault(ObservableCollection<ShopSignatureProfile> profiles)
+        => profiles.FirstOrDefault(x => x.IsDefault) ?? profiles.FirstOrDefault();
+
     [RelayCommand]
-    private void ClearSignature() => SelectedSignature = null;
+    private void ClearGroomerSignature() => SelectedGroomerSignature = null;
+
+    [RelayCommand]
+    private void ClearManagerSignature() => SelectedManagerSignature = null;
 
     private async Task RegeneratePreviewAsync()
     {
-        var signaturePng = await ReadSelectedSignatureAsync(showWarning: true);
+        var signatures = new ContractShopSignatures(
+            await ReadSignatureAsync(SelectedGroomerSignature, showWarning: true),
+            await ReadSignatureAsync(SelectedManagerSignature, showWarning: true));
         var output = await WithScopeAsync(sp => sp.GetRequiredService<ContractService>()
-            .PreviewAsync(GroomingRecordId, signaturePng));
+            .PreviewAsync(GroomingRecordId, signatures));
         var oldPreview = PreviewPath;
-        _previewShopSignaturePng = signaturePng;
+        _previewShopSignatures = signatures;
         PreviewPath = output.AbsolutePath;
         DeletePreview(oldPreview);
     }
 
-    private async Task<byte[]?> ReadSelectedSignatureAsync(bool showWarning)
+    private async Task<byte[]?> ReadSignatureAsync(ShopSignatureProfile? profile, bool showWarning)
     {
-        if (SelectedSignature is null) return null;
+        if (profile is null) return null;
         try
         {
             return await WithScopeAsync(sp => sp.GetRequiredService<ShopSignatureService>()
-                .ReadPngAsync(SelectedSignature.SignatureId));
+                .ReadPngAsync(profile.SignatureId));
         }
         catch (PetSalon.Core.Common.AppException ex)
             when (ex.Code is "SIGNATURE_NOT_FOUND" or "SIGNATURE_UNAVAILABLE" or "INVALID_SIGNATURE_IMAGE")
         {
             if (showWarning)
-                _dialog.Warning("簽名無法使用", $"{ex.Message}\n本次仍可產生 PDF，店家簽名處將留白。");
+                _dialog.Warning(
+                    "簽名無法使用",
+                    $"{profile.Role.ToLabel()}簽名「{profile.Name}」{ex.Message}\n本次仍可產生 PDF，該簽名處將留白。");
             return null;
         }
     }
@@ -124,14 +158,14 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
         }
 
         // 正式輸出沿用預覽時已讀取的同一份 bytes，避免檔案在確認期間變動而導致結果不同。
-        var shopSignaturePng = _previewShopSignaturePng;
+        var shopSignatures = _previewShopSignatures;
 
         ContractGenerateResult result;
         if (sig is null && !string.IsNullOrEmpty(PreviewPath))
         {
             // 新流程：用 CommitPreviewAsync（重新產 PDF 到正式目錄並刪 preview）
             result = await WithScopeAsync(sp => sp.GetRequiredService<ContractService>()
-                .CommitPreviewAsync(GroomingRecordId, PreviewPath, shopSignaturePng));
+                .CommitPreviewAsync(GroomingRecordId, PreviewPath, shopSignatures));
         }
         else
         {
@@ -140,7 +174,8 @@ public partial class ContractGenerateDialogViewModel : ViewModelBase, IDialogRes
             {
                 GroomingRecordId = GroomingRecordId,
                 OwnerSignaturePng = sig,
-                ShopSignaturePng = shopSignaturePng,
+                GroomerSignaturePng = shopSignatures.GroomerPng,
+                ManagerSignaturePng = shopSignatures.ManagerPng,
             }));
         }
         GeneratedPath = result.AbsolutePath;
